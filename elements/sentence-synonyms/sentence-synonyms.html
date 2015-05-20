@@ -1,0 +1,116 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
+
+<polymer-element name="sentence-synonyms" attributes="">
+    <template>
+        <link rel="stylesheet" href="sentence-synonyms.css">
+
+
+        <div class="{{sentencePreviewMode ? 'preview' : ''}}" id="sentence-container"
+             on-sentence-synonym-delete="{{deleteSynonymAction}}"
+             on-sentence-synonym-preview="{{sentenceSynonymPreviewAction}}"
+             on-sentence-synonym-preview-cancel="{{sentenceSynonymPreviewCancelAction}}">
+            <sentence-synonym-overlay id="new-synonym" synonym="{{newSynonym}}"></sentence-synonym-overlay>
+            <template repeat="{{synonyms}}">
+                <sentence-synonym-overlay synonym="{{}}"></sentence-synonym-overlay>
+            </template>
+            <div id="raw-sentence" on-mouseup="{{selectTextAction}}">
+                {{text}}
+            </div>
+        </div>
+
+        <ul on-sentence-synonym-delete="{{deleteSynonymAction}}" on-sentence-synonym-reset="{{resetSynonymAction}}"
+            on-sentence-synonym-create="{{createSynonymAction}}">
+            <li id="newSentenceSynonym" is="sentence-synonym" synonym="{{newSynonym}}" isNew="{{true}}"></li>
+            <template repeat="{{synonyms}}">
+                <li is="sentence-synonym" synonym="{{}}"></li>
+            </template>
+        </ul>
+    </template>
+    <script>
+        (function () {
+            Polymer({
+                ready: function () {
+                },
+
+                synonymColors: [
+                    '#ff0000',
+                    '#00ff00',
+                    '#0000ff',
+                    '#ffff00',
+                    '#ff00ff',
+                    '#00ffff'
+                ],
+
+                sentencePreviewMode: false,
+
+                _getSynonymColor: function (idx) {
+                    return this.synonymColors[(idx % this.synonymColors.length)];
+                },
+
+                sentenceSynonymPreviewAction: function () {
+                    console.log('sentenceSynonymPreviewAction');
+                    this.sentencePreviewMode = true;
+                },
+
+                sentenceSynonymPreviewCancelAction: function () {
+                    console.log('synonyms sentenceSynonymPreviewCancelAction');
+                    this.sentencePreviewMode = false;
+                },
+
+                selectTextAction: function () {
+                    var sel,
+                        startNode,
+                        endNode,
+                        selString;
+
+                    if (this.shadowRoot.getSelection) {
+                        sel = this.shadowRoot.getSelection();
+                    } else {
+                        sel = window.getSelection();
+                    }
+                    startNode = sel.anchorNode.parentElement.id;
+                    endNode = sel.focusNode.parentElement.id;
+
+                    if (startNode === endNode && startNode === 'raw-sentence') {
+                        selString = sel.toString();
+                        if (selString.length > 0) {
+                            this.newSynonymAction(selString);
+                        }
+
+                    }
+                    return false;
+
+
+                },
+                newSynonymAction: function (name) {
+                    this.newSynonym.name = name;
+                    this.createSynonymAction(null, this.newSynonym);
+                },
+
+                synonyms: [],
+
+                text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est.',
+
+                newSynonym: {_rawText: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est.',
+                    replacements: []},
+                deleteSynonymAction: function (e, item) {
+                    console.log('deleteSynonymAction');
+                    var idx = this.synonyms.indexOf(item);
+                    this.synonyms.splice(idx, 1);
+                },
+                resetSynonymAction: function (e, changedItem) {
+                    var idx = this.synonyms.indexOf(changedItem[0]);
+                    this.synonyms[idx] = changedItem[1];
+                },
+                createSynonymAction: function (e, item) {
+                    console.log('createSynonymAction');
+                    item.synonymColor = this._getSynonymColor(this.synonyms.length);
+                    this.synonyms.unshift(item);
+                    this.newSynonym = {_rawText: this.text, replacements: []};
+                }
+
+            });
+        })();
+    </script>
+</polymer-element>

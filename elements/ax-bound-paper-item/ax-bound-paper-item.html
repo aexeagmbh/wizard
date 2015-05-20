@@ -1,0 +1,16 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+
+<polymer-element name="ax-bound-paper-item" extends="paper-item" attributes="boundObject">
+  <template>
+        <shadow></shadow>
+  </template>
+  <script>
+    (function () {
+      Polymer('ax-bound-paper-item', {
+          boundObject: null
+        // define element prototype here
+      });
+    })();
+  </script>
+</polymer-element>

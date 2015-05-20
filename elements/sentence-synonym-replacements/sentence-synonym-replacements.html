@@ -1,0 +1,37 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="sentence-synonym-replacements" attributes="synonymId replacements">
+  <template>
+    <link rel="stylesheet" href="sentence-synonym-replacements.css">
+      <ul  on-sentence-synonym-replacement-delete="{{deleteSynonymReplacementAction}}" on-sentence-synonym-replacement-reset="{{resetSynonymReplacementAction}}" on-sentence-synonym-replacement-create="{{createSynonymReplacementAction}}">
+        <li is="sentence-synonym-replacement" replacement="{{newReplacement}}" isNew="true"></li>
+
+        <template repeat="{{replacements}}">
+            <li is="sentence-synonym-replacement" replacement="{{}}"></li>
+        </template>
+    </ul>
+  </template>
+  <script>
+    (function () {
+      Polymer({
+          newReplacement: {},
+                deleteSynonymReplacementAction: function (e, item) {
+                    console.log('deleteSynonymReplacementAction');
+                    var idx = this.replacements.indexOf(item);
+                    this.replacements.splice(idx, 1);
+                },
+                resetSynonymReplacementAction: function (e, changedItem) {
+                    var idx = this.synonyms.indexOf(changedItem[0]);
+                    this.replacements[idx] = changedItem[1];
+                },
+                createSynonymReplacementAction: function (e, item) {
+                    console.log('createSynonymReplacementAction');
+                    item.synonymId = this.synonymId;
+                    this.replacements.unshift(item);
+                    this.newReplacement = {};
+                }
+
+      });
+    })();
+  </script>
+</polymer-element>

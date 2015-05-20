@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,KAAM;EACJ,OAAO,EAAE,KAAK;;AAEd,yBAAoB;EAClB,SAAS,EAAE,IAAI;EACf,WAAW,EAAE,IAAI;EACjB,WAAW,EAAE,MAAM;EACnB,QAAQ,EAAE,QAAQ;;AAElB,uCAAc;EACZ,QAAQ,EAAE,QAAQ;;AAMpB;8CACa;EACX,OAAO,EAAE,IAAI",
+"sources": ["../../sentence-synonyms/sentence-synonyms.scss"],
+"names": [],
+"file": "sentence-synonyms.css"
+}

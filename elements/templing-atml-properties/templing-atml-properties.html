@@ -1,0 +1,27 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="templing-atml-properties" attributes="atmlProperties">
+  <template>
+    <link rel="stylesheet" href="templing-atml-properties.css">
+      <ul on-atml-property-delete="{{deleteAtmlPropertyAction}}" on-atml-property-reset="{{resetAtmlPropertyAction}}" on-atml-property-create="{{createAtmlPropertyAction}}">
+          <template repeat="{{atmlPropertyName in atmlProperties | getKeys}}">
+              <li is="templing-atml-property" atmlPropertyName="{{atmlPropertyName}}" atmlProperty="{{atmlProperties[atmlPropertyName]}}"></li>
+          </template>
+      </ul>
+  </template>
+  <script>
+    (function () {
+      Polymer('templing-atml-properties', {
+        // define element prototype here
+
+          getKeys : function(o) {
+            return Object.keys(o);
+          },
+
+            newAtmlProperty: {}
+
+
+      });
+    })();
+  </script>
+</polymer-element>

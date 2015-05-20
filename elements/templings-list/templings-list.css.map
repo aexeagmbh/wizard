@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,KAAM;EACJ,OAAO,EAAE,KAAK",
+"sources": ["../../templings-list/templings-list.scss"],
+"names": [],
+"file": "templings-list.css"
+}

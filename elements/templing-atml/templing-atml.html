@@ -1,0 +1,59 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="templing-atml" attributes="">
+    <template>
+        <link rel="stylesheet" href="templing-atml.css">
+
+        <dl>
+            <dt>version</dt>
+            <dd>{{atml.version}}</dd>
+            <dt>requirementLevels</dt>
+            <dd>
+                <templing-atml-requirement-levels
+                        requirementLevels="{{atml.requirementLevels}}"></templing-atml-requirement-levels>
+            </dd>
+            <dt>properties</dt>
+            <dd>
+                <templing-atml-properties atmlProperties="{{atml.properties || {} }}"></templing-atml-properties>
+            </dd>
+            <dt>productTypes</dt>
+            <dd></dd>
+            <dt>sentences</dt>
+            <dd></dd>
+            <dt>lookups</dt>
+            <dd></dd>
+        </dl>
+        <button on-click="{{saveAction}}">SAVE</button>
+
+
+        <textarea value="{{atmlJson}}"></textarea>
+        <button on-click="{{updateFromJsonAction}}">READ JSON</button>
+    </template>
+    <script>
+        (function () {
+            Polymer('templing-atml', {
+
+                atmlJson: '',
+                atml: {},
+
+                updateFromJsonAction: function () {
+                    console.log('updateFromJsonAction');
+                    var jsonStr = this.atmlJson.replace(/([\r\n\t])+/g, '');
+
+                    console.log(jsonStr);
+                    this.atml = JSON.parse(jsonStr);
+                },
+
+                updateAtml: function () {
+                    this.atmlJson = JSON.stringify(this.atml, null, 4);
+                },
+
+                saveAction: function () {
+                    this.updateAtml();
+                    console.log(this.atmlJson.replace(/([\r\n\t])+/g, ''));
+                }
+                // define element prototype here
+            });
+        })();
+    </script>
+</polymer-element>

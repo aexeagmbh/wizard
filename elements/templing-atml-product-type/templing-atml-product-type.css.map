@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,KAAM;EACJ,OAAO,EAAE,KAAK",
+"sources": ["../../templing-atml-product-type/templing-atml-product-type.scss"],
+"names": [],
+"file": "templing-atml-product-type.css"
+}

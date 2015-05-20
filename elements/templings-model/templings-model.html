@@ -1,0 +1,50 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/core-ajax/core-ajax.html">
+
+<polymer-element name="templings-model" attributes="restApiEndPoint">
+    <template>
+        <link rel="stylesheet" href="templings-model.css">
+        <core-ajax auto url="{{restApiEndPoint}}" handleAs="json" response="{{ajaxResponse}}"></core-ajax>
+
+
+    </template>
+    <script>
+        (function () {
+            Polymer('templings-model', {
+
+
+                _restApiEndPoint: '',
+
+
+                // it's a read only view.
+
+                _load: function () {
+                    // fake it till we make it
+                    this.asyncMethod(function() {
+
+                    });
+                }
+
+//                ajaxResponseChanged: function (oldValue) {
+//                    console.log(this.ajaxResponse);
+//                }
+
+//                _create: function () {
+//
+//                },
+//
+//                _update: function () {
+//
+//                },
+//
+//                _delete: function () {
+//
+//                },
+
+
+
+
+            });
+        })();
+    </script>
+</polymer-element>

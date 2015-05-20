@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,KAAM;EACJ,OAAO,EAAE,KAAK",
+"sources": ["../../templing-atml-properties/templing-atml-properties.scss"],
+"names": [],
+"file": "templing-atml-properties.css"
+}

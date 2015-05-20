@@ -1,0 +1,76 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="sentence-synonym" extends="li" attributes="synonym isNew">
+    <template>
+        <link rel="stylesheet" href="sentence-synonym.css">
+
+        <div on-dblclick="{{editAction}}" style="box-shadow: -10px 0px 0px 0px {{synonym.synonymColor}};">
+
+                <span hidden?="{{(editing || isNew)}}">{{synonym.name}}</span>
+                <input placeholder="New Synonym" is="inline-input" value="{{synonym.name}}" hidden?="{{!(editing || isNew)}}" on-inline-input-commit="{{commitAction}}" on-inline-input-cancel="{{cancelAction}}">
+                <template if="{{ !(isNew || editing) }}">
+                    <button on-click="{{editAction}}">EDIT</button>
+                </template>
+
+                <template if="{{ (isNew || editing) }}">
+                    <button on-click="{{commitAction}}">SAVE</button>
+                </template>
+                <template if="{{ (!isNew) }}">
+                    <button on-click="{{deleteAction}}">DELETE</button>
+                </template>
+                <template if="{{ (!isNew && editing) }}">
+                    <button on-click="{{cancelAction}}">CANCEL</button>
+                </template>
+
+            <template if="{{ (!isNew) }}">
+                    <dl>
+                        <dt>Replacements TODO</dt>
+                        <dd>
+                            <sentence-synonym-replacements replacements="{{synonym.replacements}}"
+                                                           synonymId="{{synonym.id}}"></sentence-synonym-replacements>
+                        </dd>
+
+
+                    </dl>
+            </template>
+        </div>
+
+    </template>
+    <script>
+        (function () {
+            Polymer('sentence-synonym', {
+
+//                replacements: [],
+
+                editing: false,
+                originalVal: null,
+                editAction: function () {
+                    if (!this.isNew) {
+                        this.originalVal = JSON.stringify(this.synonym);
+                    }
+                    this.editing = true;
+                },
+                cancelAction: function () {
+                    if (!this.isNew) {
+                        this.fire('sentence-synonym-reset', [this.synonym, JSON.parse(this.originalVal)]);
+                    }
+                    this.editing = false;
+                },
+                commitNewSynonymAction: function () {
+                    if (!this.synonym.name) {
+                        return this.cancelAction();
+                    }
+                    if (this.isNew) {
+                        this.fire('sentence-synonym-create', this.synonym);
+                    }
+
+                    this.editing = false;
+                },
+                deleteAction: function () {
+                    console.log('deleteAction');
+                    this.fire('sentence-synonym-delete', this.synonym);
+                }
+            });
+        })();
+    </script>
+</polymer-element>

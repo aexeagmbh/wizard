@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,KAAM;EACJ,OAAO,EAAE,KAAK",
+"sources": ["../../templing-atml-sentence/templing-atml-sentence.scss"],
+"names": [],
+"file": "templing-atml-sentence.css"
+}

@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,KAAM;EACJ,OAAO,EAAE,KAAK;;AAEd,iCAA4B;EAC1B,QAAQ,EAAE,QAAQ;EAElB,GAAG,EAAE,CAAC;EACN,IAAI,EAAE,CAAC;;AACP,oDAAmB;EACjB,KAAK,EAAE,WAAW;;AAGtB,yCAAoC;EAClC,QAAQ,EAAE,QAAQ;EAElB,UAAU,EAAE,iBAAiB;EAC7B,IAAI,EAAE,KAAK;EACX,YAAY,EAAE,IAAI;;AAClB,4DAAmB;EACjB,KAAK,EAAE,KAAK;;;AAMlB,0CAA2C;EACzC,OAAO,EAAE,IAAI;;;AAGf,kDAAmD;EACjD,OAAO,EAAE,KAAK",
+"sources": ["../../sentence-synonym-overlay/sentence-synonym-overlay.scss"],
+"names": [],
+"file": "sentence-synonym-overlay.css"
+}

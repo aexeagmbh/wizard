@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,KAAM;EACJ,OAAO,EAAE,KAAK",
+"sources": ["../../sentence-synonym-replacement/sentence-synonym-replacement.scss"],
+"names": [],
+"file": "sentence-synonym-replacement.css"
+}

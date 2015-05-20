@@ -1,0 +1,18 @@
+<polymer-element name="app-globals">
+    <script>
+        (function() {
+            // these variables are shared by all instances of app-globals
+            var values = {
+                appName: 'AX Dumbledore',
+                apiUrl: 'https://rincewind-stage.qax.io/api/v1'
+            };
+
+            Polymer({
+                ready: function() {
+                    // make global values available on instance.
+                    this.values = values;
+                }
+            });
+        })();
+    </script>
+</polymer-element>

@@ -1,0 +1,70 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="templing-atml-requirement-level" extends="li" attributes="requirementLevel isNew">
+    <template>
+        <link rel="stylesheet" href="templing-atml-requirement-level.css">
+        <ul on-dblclick="{{editAction}}">
+            <li>
+                <label>varName
+                    <span hidden?="{{(editing || isNew)}}">{{requirementLevel.varName}}</span>
+                    <input is="inline-input" value="{{requirementLevel.varName}}" hidden?="{{!(editing || isNew)}}" on-inline-input-commit="{{commitAction}}" on-inline-input-cancel="{{cancelAction}}">
+                </label>
+            </li>
+            <li>
+                <label>requirementLevel
+                    <span hidden?="{{(editing || isNew)}}">{{requirementLevel.requirementLevel}}</span>
+                    <select value="{{requirementLevel.requirementLevel}}" hidden?="{{!(editing || isNew)}}">
+                        <option value="">Please Choose</option>
+                        <template repeat="{{requirementLevelOption in requirementLevelOptions}}">
+                            <option value="{{requirementLevelOption.value}}">{{requirementLevelOption.name}}</option>
+                        </template>
+                    </select>
+                </label>
+            </li>
+        </ul>
+        <template if="{{ (editing || isNew) }}">
+            <button on-click="{{commitAction}}">SAVE</button>
+        </template>
+        <template if="{{ (!isNew && editing) }}">
+            <button on-click="{{deleteAction}}">DELETE</button>
+        </template>
+
+    </template>
+    <script>
+        (function () {
+            Polymer('templing-atml-requirement-level', {
+                // define element prototype here
+                editing: false,
+                originalVal: null,
+
+                requirementLevelOptions: [
+                    {name: 'recommended', value: 'recommended'},
+                    {name: 'critical', value: 'critical'}
+                ],
+
+                editAction: function () {
+                    if (!this.isNew) {
+                        this.originalVal = JSON.stringify(this.requirementLevel);
+                    }
+                    this.editing = true;
+                },
+                cancelAction: function () {
+                    if (!this.isNew) {
+                        this.fire('requirement-level-reset', [this.requirementLevel, JSON.parse(this.originalVal)]);
+                    }
+                    this.editing = false;
+                },
+                commitNewSynonymAction: function () {
+                    if (this.isNew) {
+                        this.fire('requirement-level-create', this.requirementLevel);
+                    }
+                    this.editing = false;
+                },
+                deleteAction: function () {
+                    console.log('deleteAction');
+                    this.fire('requirement-level-delete', this.requirementLevel);
+                }
+            });
+        })();
+    </script>
+</polymer-element>

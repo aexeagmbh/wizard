@@ -1,0 +1,49 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="templing-atml-property" extends="li" attributes="atmlPropertyName atmlProperty isNew">
+  <template>
+    <link rel="stylesheet" href="templing-atml-property.css">
+      <dl>
+            <dt on-dblclick="{{editAtmlPropertyNameAction}}">
+                <label>
+                    <span hidden?="{{(editingAtmlPropertyName || isNew)}}">{{atmlPropertyName}}</span>
+                    <input is="inline-input" value="{{atmlPropertyName}}" hidden?="{{!(editingAtmlPropertyName || isNew)}}" on-inline-input-commit="{{commitAtmlPropertyNameAction}}" on-inline-input-cancel="{{cancelAtmlPropertyName}}">
+                </label>
+            </dt>
+            <dd>
+                <ul on-dblclick="{{editAtmlPropertyAction}}">
+                    <li>
+                        <label>mappingExpression
+                            <span hidden?="{{(editing || isNew)}}">{{atmlProperty.mappingExpression}}</span>
+                            <input is="inline-input" value="{{atmlProperty.mappingExpression}}" hidden?="{{!(editing || isNew)}}" on-inline-input-commit="{{commitAction}}" on-inline-input-cancel="{{cancelAction}}">
+                        </label>
+                    </li>
+
+                    <li>
+                        <label>truthExpression
+                            <span hidden?="{{(editing || isNew)}}">{{atmlProperty.truthExpression}}</span>
+                            <input is="inline-input" value="{{atmlProperty.truthExpression}}" hidden?="{{!(editing || isNew)}}" on-inline-input-commit="{{commitAction}}" on-inline-input-cancel="{{cancelAction}}">
+                        </label>
+                    </li>
+                </ul>
+
+            </dd>
+        </dl>
+
+
+  </template>
+  <script>
+    (function () {
+      Polymer('templing-atml-property', {
+          editingAtmlPropertyName: false,
+
+          editAtmlPropertyNameAction: function () {
+              this.editingAtmlPropertyName = true;
+          }
+
+
+        // define element prototype here
+      });
+    })();
+  </script>
+</polymer-element>

@@ -1,0 +1,21 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/core-input/core-input.html">
+
+<polymer-element name="ax-core-input-inline" extends="core-input" on-keyup="{{keyupAction}}">
+    <script>
+        (function () {
+            var ENTER_KEY = 13;
+            var ESC_KEY = 27;
+            Polymer('ax-core-input-inline', {
+                keyupAction: function(e) {
+                    if (e.keyCode === ESC_KEY) {
+                        this.fire('ax-core-input-inline-cancel');
+                    }
+                    if (e.keyCode === ENTER_KEY) {
+                        this.fire('ax-core-input-inline-commit');
+                    }
+                }
+            });
+        })();
+    </script>
+</polymer-element>

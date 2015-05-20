@@ -1,0 +1,232 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dropdown/paper-dropdown.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+
+<link rel="import" href="../../bower_components/paper-input/paper-input-decorator.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/core-menu/core-menu.html">
+<link rel="import" href="../../bower_components/core-icon-button/core-icon-button.html">
+<link rel="import" href="../ax-core-input-inline/ax-core-input-inline.html">
+<link rel="import" href="../ax-bound-paper-item/ax-bound-paper-item.html">
+
+<polymer-element name="sentence-synonym-overlay-inline" attributes="synonym isPreview">
+    <template><link rel="stylesheet" href="sentence-synonym-overlay-inline.css"><!--
+        --><div id="sentence-synonym-overlay-inline-container"  on-mouseleave="{{unHoverAction}}"  on-dblclick="{{addNewSynonymAction}}"><!--
+            --><template if="{{isDisplay}}"><!--
+                --><span class="synonym" on-mouseenter="{{hoverAction}}"
+                         style="box-shadow: 1px 1px 1px 1px {{synonym.synonymColor}};"
+                >{{displaySynonym}}</span><!--
+            --></template><!--
+            --><template if="{{isHovered}}"><!--
+                --><span class="synonym" on-click="{{editActiveObjectAction}}"
+                         style="box-shadow: 1px 1px 1px 1px {{synonym.synonymColor}};"
+                >{{displaySynonym}}</span><!--
+                --><div class="controls" style="color: {{synonym.synonymColor}};"><!--
+                    --><paper-icon-button title="Show Synonyms" icon="unfold-more" on-click="{{showSynonymSelectAction}}">Show Synonyms</paper-icon-button><!--
+                    --><paper-icon-button title="Add Synonym" icon="create" on-click="{{addNewSynonymAction}}"></paper-icon-button><!--
+                    --><template if="{{isPreview}}"><!--
+                        --><paper-icon-button title="Cancel Preview" icon="visibility-off" on-click="{{cancelPreviewAction}}"></paper-icon-button><!--
+                    --></template><!--
+                    --><paper-icon-button title="Delete" icon="delete" on-click="{{deleteActiveObjectAction}}"></paper-icon-button><!--
+                --></div><!--
+            --></template><!--
+            --><template if="{{isDisplaySynonymSelect}}">
+                    <paper-dropdown-menu label="{{displaySynonym}}" on-core-select="{{synonymSelectedAction}}">
+                        <paper-dropdown class="dropdown">
+                            <core-menu class="menu">
+                                <ax-bound-paper-item boundObject="{{synonym}}">{{synonym.name}}</ax-bound-paper-item>
+                                <template repeat="{{replacement in synonym.replacements}}">
+                                    <ax-bound-paper-item boundObject="{{replacement}}">{{replacement.name}}</ax-bound-paper-item>
+                                </template>
+                            </core-menu>
+                        </paper-dropdown>
+                    </paper-dropdown-menu><!--
+            --></template><!--
+            --><template if="{{isEditActiveObject}}"><!--
+                --><paper-input-decorator label="EDIT: [[activeObject.name]]" floatingLabel="{{true}}"><!--
+                        --><input value="[[activeObject.name]]" is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelEditActiveObjectAction}}" on-ax-core-input-inline-commit="{{commitEditActiveObjectAction}}" autofocus><!--
+                --></paper-input-decorator><!--
+            --></template><!--
+            --><template if="{{isAddNewSynonym}}">
+                <paper-input-decorator label="New Synonym for: [[synonym.name]]" floatingLabel="{{true}}"><!--
+                    --><input is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelNewSynonymAction}}" on-ax-core-input-inline-commit="{{commitNewSynonymAction}}" autofocus><!--
+                --></paper-input-decorator><!--
+            --></template><!--
+        --></div><!--
+    --></template>
+    <script>
+        (function () {
+            Polymer('sentence-synonym-overlay-inline', {
+                // define element prototype here
+                isDisplay: true,
+                isHovered: false,
+                isDisplaySynonymSelect: false,
+                isAddNewSynonym: false,
+
+                isEditActiveObject: false,
+                activeObject: null,
+
+                isPreview: false,
+
+                ready: function () {
+                    this.activeObject = this.synonym;
+                },
+
+                computed: {
+                    displaySynonym: 'activeObject ? activeObject.name : synonym.name'
+                },
+
+                newReplacement: {
+                    name: ''
+                },
+
+                showPreviewAction: function() {
+                    console.log('showPreviewAction');
+                    this.isPreview = true;
+                    this.fire('sentence-synonym-preview');
+                },
+
+                commitEditActiveObjectAction: function (e, foo, input) {
+                    this.activeObject.name = input.value;
+                    this.cancelEditActiveObjectAction();
+                },
+
+                cancelEditActiveObjectAction: function () {
+
+                    console.log('cancelEditActiveObjectAction');
+                    this.isEditActiveObject = false;
+                    this.isDisplay = true;
+                },
+
+                cancelNewSynonymAction: function () {
+                    this.cancelAddNewSynonymAction();
+                },
+
+                cancelPreviewAction: function () {
+                    console.log('cancelPreviewAction');
+                    this.activeObject = this.synonym;
+                    this.isPreview = false;
+                    this.isDisplay = true;
+                    this.isHovered = false;
+                    this.isDisplaySynonymSelect = false;
+                    this.isAddNewSynonym = false;
+
+                    this.fire('sentence-synonym-preview-cancel');
+                },
+
+                commitNewSynonymAction: function (e, foo, input) {
+                    console.log('commitNewSynonymAction');
+                    var item = {};
+                    item.name = input.value;
+                    item.synonymId = this.synonym.id;
+                    this.synonym.replacements.unshift(item);
+                    this.isPreview = true;
+                    this.activeObject = item;
+                    this.cancelAddNewSynonymAction();
+                },
+
+
+                addNewSynonymAction: function (e) {
+                    if (this.isEditActiveObject) {
+                        return;
+                    }
+                    this.showPreviewAction();
+                    console.log('addNewSynonymAction');
+                    e.stopPropagation();
+                    this.isAddNewSynonym = true;
+                    this.isDisplaySynonymSelect = false;
+                    this.isDisplay = false;
+                    this.isHovered = false;
+                },
+
+                cancelAddNewSynonymAction: function () {
+
+                    console.log('cancelAddNewSynonymAction');
+                    this.isAddNewSynonym = false;
+                    this.isDisplay = true;
+                },
+
+                synonymSelectedAction: function (e, foo) {
+                    this.activeObject = foo.item.boundObject;
+                    if (e.detail.item.textContent === this.synonym.name) {
+                        this.cancelPreviewAction();
+                    } else {
+                        this.showPreviewAction();
+                        this.isDisplaySynonymSelect = false;
+                        this.isDisplay = true;
+                    }
+
+                },
+
+                synonymSelectedCancelAction: function () {
+                    console.log('synonymSelectedCancelAction');
+                    this.isHovered = false;
+                    this.isDisplay = true;
+
+                    this.isDisplaySynonymSelect = false;
+                    this.cancelPreviewAction();
+                },
+
+                hoverAction: function () {
+                    if (this.isDisplaySynonymSelect || this.isAddNewSynonym || this.isEditActiveObject) {
+                        return;
+                    }
+                    console.log('hoverAction');
+                    this.fire('sentence-synonym-overlay-inline-highlight', this.synonym);
+                    this.isHovered = true;
+                    this.isDisplay = false;
+                },
+
+                unHoverAction: function () {
+                    if (this.isDisplaySynonymSelect || this.isAddNewSynonym || this.isEditActiveObject) {
+                        return;
+                    }
+                    console.log('unHoverAction');
+                    this.isHovered = false;
+                    this.isDisplay = !this.isDisplaySynonymSelect;
+
+                },
+
+                showSynonymSelectAction: function (e) {
+                    if (this.isAddNewSynonym) {
+                        e.stopPropagation();
+                        return;
+                    }
+                    console.log('showSynonymSelectAction');
+                    this.isHovered = false;
+                    this.isDisplay = false;
+                    this.isDisplaySynonymSelect = true;
+                    this.fire('sentence-synonym-preview');
+                },
+
+                deleteActiveObjectAction: function (e) {
+                    e.stopPropagation();
+                    console.log('deleteActiveObjectAction');
+
+
+                    if (this.activeObject.replacements) {
+                        console.log('deleteActiveObjectAction: is homonym');
+                        this.fire('sentence-synonym-delete', this.activeObject);
+                    } else {
+                        console.log('deleteActiveObjectAction: is synonym');
+                        var idx = this.synonym.replacements.indexOf(this.activeObject);
+                        this.synonym.replacements.splice(idx, 1);
+                        this.activeObject = this.synonym;
+                    }
+
+                },
+                editActiveObjectAction: function () {
+                    console.log('editActiveObjectAction');
+                    this.unHoverAction();
+                    this.activeObject = this.activeObject || this.synonym;
+                    this.isEditActiveObject = true;
+                    this.isDisplay = false;
+                    this.showPreviewAction();
+                }
+
+
+
+            });
+        })();
+    </script>
+</polymer-element>

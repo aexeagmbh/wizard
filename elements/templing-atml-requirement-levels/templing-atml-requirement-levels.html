@@ -1,0 +1,38 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="templing-atml-requirement-levels" attributes="requirementLevels">
+    <template>
+        <link rel="stylesheet" href="templing-atml-requirement-levels.css">
+        <ul on-requirement-level-delete="{{deleteRequirementLevelAction}}" on-requirement-level-reset="{{resetRequirementLevelAction}}" on-requirement-level-create="{{createRequirementLevelAction}}">
+            <li is="templing-atml-requirement-level" requirementLevel="{{newRequirementLevel}}" isNew="true"></li>
+            <template repeat="{{requirementLevels}}">
+                <li is="templing-atml-requirement-level" requirementLevel="{{}}"></li>
+            </template>
+        </ul>
+
+    </template>
+    <script>
+        (function () {
+            Polymer('templing-atml-requirement-levels', {
+
+                newRequirementLevel: {},
+
+                deleteRequirementLevelAction: function (e, requirementLevel) {
+                    console.log('deleteRequirementLevelAction');
+                    var idx = this.requirementLevels.indexOf(requirementLevel);
+                    this.requirementLevels.splice(idx, 1);
+                },
+                resetRequirementLevelAction: function (e, levels) {
+                    var idx = this.requirementLevels.indexOf(levels[0]);
+                    this.requirementLevels[idx] = levels[1];
+                },
+                createRequirementLevelAction: function (e, requirementLevel) {
+                    console.log('createRequirementLevelAction');
+                    this.requirementLevels.unshift(requirementLevel);
+                    this.newRequirementLevel = {};
+                }
+                // define element prototype here
+            });
+        })();
+    </script>
+</polymer-element>

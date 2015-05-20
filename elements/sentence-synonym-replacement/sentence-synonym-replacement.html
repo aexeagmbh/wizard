@@ -1,0 +1,57 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="sentence-synonym-replacement" extends="li" attributes="replacement isNew">
+    <template>
+        <link rel="stylesheet" href="sentence-synonym-replacement.css">
+
+        <ul on-dblclick="{{editAction}}">
+            <li>
+
+                <span hidden?="{{(editing || isNew)}}">{{replacement.name}}</span>
+                <input placeholder="New Replacement" is="inline-input" value="{{replacement.name}}" hidden?="{{!(editing || isNew)}}" on-inline-input-commit="{{commitAction}}" on-inline-input-cancel="{{cancelAction}}">
+                <template if="{{ !(isNew || editing) }}">
+                    <button on-click="{{editAction}}">EDIT</button>
+                </template>
+
+                <template if="{{ (isNew || editing) }}">
+                    <button on-click="{{commitAction}}">SAVE</button>
+                </template>
+                <template if="{{ (!isNew) }}">
+                    <button on-click="{{deleteAction}}">DELETE</button>
+                </template>
+                <template if="{{ (!isNew && editing) }}">
+                    <button on-click="{{cancelAction}}">CANCEL</button>
+                </template>
+            </li>
+        </ul>
+
+    </template>
+    <script>
+        (function () {
+            Polymer('sentence-synonym-replacement', {
+                editAction: function () {
+                    if (!this.isNew) {
+                        this.originalVal = JSON.stringify(this.replacement);
+                    }
+                    this.editing = true;
+                },
+                cancelAction: function () {
+                    if (!this.isNew) {
+                        this.fire('sentence-synonym-replacement-reset', [this.replacement, JSON.parse(this.originalVal)]);
+                    }
+                    this.editing = false;
+                },
+                commitNewSynonymAction: function () {
+                    if (this.isNew) {
+                        this.fire('sentence-synonym-replacement-create', this.replacement);
+                    }
+                    this.editing = false;
+                },
+                deleteAction: function () {
+                    console.log('deleteAction');
+                    this.fire('sentence-synonym-replacement-delete', this.replacement);
+                }
+            });
+        })();
+    </script>
+</polymer-element>

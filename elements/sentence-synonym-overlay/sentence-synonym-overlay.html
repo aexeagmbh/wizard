@@ -1,0 +1,58 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="sentence-synonym-overlay" attributes="synonym">
+    <template>
+        <link rel="stylesheet" href="sentence-synonym-overlay.css">
+
+        <div id="textWithHighlightContainer" class="{{sentencePreviewMode ? 'preview' : ''}}" style="color: {{synonym.synonymColor}};">
+            <div  id="textWithHighlight"  on-sentence-synonym-preview="{{sentenceSynonymPreviewAction}}" on-sentence-synonym-preview-cancel="{{sentenceSynonymPreviewCancelAction}}"></div>
+        </div>
+    </template>
+    <script>
+        (function () {
+            Polymer('sentence-synonym-overlay', {
+
+                textWithHighlight: '',
+
+                computed: {
+                    synonymName: 'synonym.name'
+                },
+
+                sentencePreviewMode: false,
+
+                synonymNameChanged: function () {
+                    console.log('synonymNameChanged');
+                    this.synonymChanged();
+                },
+
+
+                cancelSynonymAction: function () {
+
+                },
+
+                sentenceSynonymPreviewAction: function () {
+                    console.log('sentenceSynonymPreviewAction');
+                    this.sentencePreviewMode = true;
+                },
+                sentenceSynonymPreviewCancelAction: function () {
+                    this.sentencePreviewMode = false;
+                },
+
+
+                clickAction: function () {
+                },
+
+                synonymChanged: function () {
+                    var re;
+                    if (!this.synonym.name) {
+                        this.textWithHighlight = this.synonym._rawText;
+                    } else {
+                        re = new RegExp(this.synonym.name, 'g');
+                        this.textWithHighlight = this.synonym._rawText.replace(re, '<sentence-synonym-overlay-inline synonym="{{synonym}}" isPreview="[[sentencePreviewMode]]"></sentence-synonym-overlay-inline>');
+                    }
+                    this.injectBoundHTML(this.textWithHighlight, this.$.textWithHighlight);
+                }
+            });
+        })();
+    </script>
+</polymer-element>

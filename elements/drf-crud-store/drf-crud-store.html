@@ -1,0 +1,89 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../drf-crud/drf-crud.html">
+
+
+<polymer-element name="drf-crud-store" attributes="singleEndPoint listEndPoint">
+    <template>
+        <app-globals id="globals"></app-globals>
+        <drf-crud id="drfCrud" listUrl="{{listUrl}}" postUrl="{{postUrl}}" getUrl="{{getUrl}}" putUrl="{{putUrl}}"
+                  deleteUrl="{{deleteUrl}}"></drf-crud>
+    </template>
+    <script>
+        (function () {
+            Polymer('drf-crud-store', {
+
+                objectList: [],
+
+                listEndPoint: null,
+                singleEndPoint: null,
+                objectId: null,
+
+                listUrl: null,
+                postUrl: null,
+                getUrl: null,
+                putUrl: null,
+                deleteUrl: null,
+
+                computed: {
+                    listEndPointUrl: '$.globals.values.apiUrl + "/" + listEndPoint + "/"',
+                    singleEndPointUrl: '$.globals.values.apiUrl + "/" + singleEndPoint + "/"'
+                },
+
+                _promises: [],
+
+                list: function () {
+                    var self = this,
+                        p = new Promise(function (resolve, reject) {
+                            var crud = self.$.drfCrud;
+                            crud.listUrl = self.listEndPointUrl;
+
+                            res = crud.list({});
+
+                        });
+                },
+                get: function (pk) {
+                    var self = this,
+                        p = new Promise(function (resolve, reject) {
+                            var crud = self.$.drfCrud;
+                            crud.getUrl = self.singleEndPoint + pk;
+
+                            res = crud.get({});
+
+                        });
+                },
+                post: function (data) {
+                    var self = this,
+                        p = new Promise(function (resolve, reject) {
+                            var crud = self.$.drfCrud;
+                            crud.postUrl = self.singleEndPoint;
+
+                            res = crud.post({}, data);
+
+                        });
+                },
+                put: function (data, id) {
+                    var self = this,
+                        pk = data.id || id,
+                        p = new Promise(function (resolve, reject) {
+                            var crud = self.$.drfCrud;
+                            crud.putUrl = self.singleEndPoint + pk;
+
+                            res = crud.put({}, data);
+
+                        });
+                },
+                delete: function (pk) {
+                    var self = this,
+                        p = new Promise(function (resolve, reject) {
+                            var crud = self.$.drfCrud;
+                            crud.deleteUrl = self.singleEndPoint + pk;
+
+                            res = crud.delete({});
+
+                        });
+                }
+            });
+        })();
+    </script>
+</polymer-element>
