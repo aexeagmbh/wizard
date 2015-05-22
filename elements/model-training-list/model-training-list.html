@@ -43,8 +43,8 @@
                 addAction: function(e, details, sender) {
                     e.preventDefault();
                     var model = this;
-                    model.storage.post(JSON.stringify(model.newTraining)).then(function () {
-                        model.refresh();
+                    model.storage.post(model.newTraining).then(function () {
+//                        model.refresh();
                         model.$.addDialogCollapse.opened = false;
                         model.newTraining = {
                     name: '',
@@ -76,6 +76,7 @@
 
                     this.asyncMethod(function() {
                         model.storage.list().then(function (response) {
+                            console.log({refresh: response});
                             model.data = response;
                             console.log(response);
                         }).catch(function (e) {

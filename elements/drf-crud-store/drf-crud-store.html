@@ -46,7 +46,7 @@
                     if (itemIdx !== undefined) {
                         this.items[itemIdx] = item;
                     } else {
-                        this.items.append(item);
+                        this.items.unshift(item);
                     }
                 },
 
@@ -135,15 +135,16 @@
                                 res;
                             crud.postUrl = self.singleEndPointUrl;
 
-                            res = crud.promisePost({}, data);
-                            res.then(function (payload) {
-                                resolve(payload.response);
+                            res = crud.promisePost({}, JSON.stringify(data));
+                            res.then(function (response) {
+                                self._setItem(response.response);
+                                resolve(self._getItem(response.id));
                             }).catch(function (e) {
                                 reject(e);
                             });
                         });
                     p.then(function (payload) {
-
+                        document.querySelector('#' + self.notifierId).notify(self.verboseSingleName + ' created');
                     });
                     p.catch(function (e) {
                          document.querySelector('#' + self.notifierId).notify('ERROR: Creating ' + self.verboseSingleName + ' failed');
@@ -152,13 +153,13 @@
                 },
                 put: function (data, id) {
                     var self = this,
-                        pk = data.id || id,
+                        pk = id || data.id,
                         p = new Promise(function (resolve, reject) {
                             var crud = self.$.drfCrud,
                                 res;
                             crud.putUrl = self.singleEndPointUrl + pk + "/";
 
-                            res = crud.promisePut({}, data);
+                            res = crud.promisePut({}, JSON.stringify(data));
                             res.then(function (payload) {
                                 resolve(payload.response);
                             }).catch(function (e) {
@@ -166,7 +167,7 @@
                             });
                         });
                     p.then(function (payload) {
-
+                        document.querySelector('#' + self.notifierId).notify(self.verboseSingleName + ' updated');
                     });
                     p.catch(function (e) {
                          document.querySelector('#' + self.notifierId).notify('ERROR: Saving ' + self.verboseSingleName + ' failed');
@@ -191,7 +192,7 @@
                             });
                         });
                     p.then(function (payload) {
-
+                        document.querySelector('#' + self.notifierId).notify(self.verboseSingleName + ' deleted');
                     });
                     p.catch(function (e) {
                          document.querySelector('#' + self.notifierId).notify('ERROR: Deleting ' + self.verboseSingleName + ' failed');

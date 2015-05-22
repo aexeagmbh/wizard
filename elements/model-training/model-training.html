@@ -8,13 +8,18 @@
 
 <polymer-element name="model-training" attributes="training storageId">
     <template>
+
+        <base-model id="trainingModel" storageId="{{storageId}}" data="{{training}}"></base-model>
+        
         <div class="training">
-            <h2>{{training.name}}</h2>
+            <h2>{{trainingData.name}}</h2>
         <div horizontal layout center>
-            <paper-input label="Name" floatingLabel="true" value="{{training.name}}"></paper-input>
+            <paper-input-decorator label="Name" floatingLabel="{{true}}">
+                <input value="{{trainingData.name}}" is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelEditAction}}" on-ax-core-input-inline-commit="{{updateAPI}}" autofocus>
+            </paper-input-decorator>
             <paper-icon-button icon="delete" on-click="{{confirmDeleteAction}}"></paper-icon-button>
             <paper-action-dialog id="confirmDialog" heading="Delete training?">
-                <p>Do you really want to delete the training "{{training.name}}"?</p>
+                <p>Do you really want to delete the training "{{trainingData.name}}"?</p>
                 <paper-button dismissive>Cancel</paper-button>
                 <paper-button affirmative on-click="{{deleteAction}}">Confirm</paper-button>
             </paper-action-dialog>
@@ -24,55 +29,26 @@
     <script>
         (function () {
             Polymer('model-training', {
-                storage: null,
-                storageIdChanged: function (oldValue, newValue) {
-                  this.storage = document.querySelector('#' + newValue);
+
+                model: null,
+                ready: function () {
+                    this.model = this.$.trainingModel;
+                    this.model.refresh();
+                },
+                computed: {
+                    trainingData: 'model.data'
                 },
 
-                trainingChanged: function(oldValue, newValue){
-                    console.log({dataChanged: arguments});
-                    if(oldValue && Object.keys(oldValue).length) {
-                        clearTimeout(this.dataChangeTimeout);
-                        this.dataChangeTimeout = window.setTimeout(this.updateAPI.bind(this), 500);
-                    }
-                },
                 updateAPI: function() {
-                    console.log('Saving to API');
-                    this.storage.put(JSON.stringify(this.training), this.training.id);
-                    document.querySelector('#userNotifier').notify('Training saved');
+                    this.model.save();
                 },
-                observe: {
-                    'training.name': 'trainingChanged'
-                },
+
                 confirmDeleteAction: function() {
                     this.$.confirmDialog.open();
                 },
                 deleteAction: function() {
-                    console.log();
-                    this.storage.delete(this.training.id);
-                },
-                domReady: function() {
-                    return this.refresh();
-                },
-                refresh: function() {
-                    var model = this;
-
-                    this.asyncMethod(function() {
-                        console.log({model: model});
-                        var id = model.training ? model.training.id : pk;
-                        model.storage.get(model.training.id || model.pk).then(function (response) {
-                            model.training = response;
-                        }).catch(function (e) {
-
-                        });
-                    });
+                    this.model.delete();
                 }
-                // handleCrudCompleted: function(e, response, element) {
-                //     this.data = response.response;
-                // },
-                // handleCrudError: function(response) {
-                //     document.querySelector('#userNotifier').notify('Error comminucating with API: ' + response);
-                // }
             });
         })();
     </script>

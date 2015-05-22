@@ -1,0 +1,72 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="base-model" attributes="storageId pk data">
+
+    <script>
+        (function () {
+            Polymer('base-model', {
+                storage: null,
+                defaultData: {
+                    id: null,
+                    created: null,
+                    modified: null,
+                    name: ''
+                },
+                data: {},
+                fields: {},
+                validators: {},
+
+                computed: {
+                  'isNew': '!data.id'
+                },
+
+                ready: function () {
+                    this.refresh();
+                },
+
+                storageIdChanged: function (oldValue, newValue) {
+                  this.storage = document.querySelector('#' + newValue);
+                },
+
+                save: function () {
+                    var model = this,
+                        ret;
+                    if (this.isNew) {
+                        ret = this.storage.post(model.data);
+                        ret.then(function () {
+                           model.data = model.defaultData;
+                        });
+                    } else {
+                        ret = this.storage.put(model.data);
+                        ret.then(function (data) {
+                           model.data = data;
+                        });
+                    }
+
+                    return ret;
+                },
+
+                delete: function () {
+                    return this.storage.delete(this.data.id || this.pk);
+                },
+
+                refresh: function () {
+                    if (this.isNew) {
+
+                    } else {
+                        this.async(function() {
+                            var ret = this.storage.get(this.data.id || this.pk);
+                            ret.then(function (data) {
+                                this.data = data;
+                            });
+
+                            return ret;
+                        });
+                    }
+
+                }
+
+            });
+        })();
+    </script>
+</polymer-element>
