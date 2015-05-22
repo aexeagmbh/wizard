@@ -6,22 +6,15 @@
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
 
-<polymer-element name="model-training" attributes="pk">
+<polymer-element name="model-training" attributes="training storageId">
     <template>
-        <drf-crud id="crudElement"
-            geturl="{{baseUrl}}/{{version}}/trainings/{{pk}}/"
-            posturl="{{baseUrl}}/{{version}}/trainings/"
-            puturl="{{baseUrl}}/{{version}}/trainings/{{pk}}/"
-            deleteurl="{{baseUrl}}/{{version}}/trainings/{{pk}}/"
-            on-get-completed="{{handleCrudCompleted}}"
-            on-get-error="{{handleCrudError}}"></drf-crud>
         <div class="training">
-            <h2>{{data.name}}</h2>
+            <h2>{{training.name}}</h2>
         <div horizontal layout center>
-            <paper-input label="Name" floatingLabel="true" value="{{data.name}}"></paper-input>
+            <paper-input label="Name" floatingLabel="true" value="{{training.name}}"></paper-input>
             <paper-icon-button icon="delete" on-click="{{confirmDeleteAction}}"></paper-icon-button>
             <paper-action-dialog id="confirmDialog" heading="Delete training?">
-                <p>Do you really want to delete the training "{{data.name}}"?</p>
+                <p>Do you really want to delete the training "{{training.name}}"?</p>
                 <paper-button dismissive>Cancel</paper-button>
                 <paper-button affirmative on-click="{{deleteAction}}">Confirm</paper-button>
             </paper-action-dialog>
@@ -31,11 +24,12 @@
     <script>
         (function () {
             Polymer('model-training', {
-                baseUrl: 'http://localhost:8001/api',
-                version: 'v1',
-                data: {},
-                dataChanged: function(oldValue, newValue){
+                storage: null,
+                storageIdChanged: function (oldValue, newValue) {
+                  this.storage = document.querySelector('#' + newValue);
+                },
 
+                trainingChanged: function(oldValue, newValue){
                     console.log({dataChanged: arguments});
                     if(oldValue && Object.keys(oldValue).length) {
                         clearTimeout(this.dataChangeTimeout);
@@ -44,30 +38,41 @@
                 },
                 updateAPI: function() {
                     console.log('Saving to API');
-                    this.$.crudElement.put({}, JSON.stringify(this.data));
+                    this.storage.put(JSON.stringify(this.training), this.training.id);
                     document.querySelector('#userNotifier').notify('Training saved');
                 },
                 observe: {
-                    'data.name': 'dataChanged'
+                    'training.name': 'trainingChanged'
                 },
                 confirmDeleteAction: function() {
                     this.$.confirmDialog.open();
                 },
                 deleteAction: function() {
-                    this.$.crudElement.delete({});
+                    console.log();
+                    this.storage.delete(this.training.id);
                 },
                 domReady: function() {
                     return this.refresh();
                 },
                 refresh: function() {
-                    return this.$.crudElement.get({});
-                },
-                handleCrudCompleted: function(e, response, element) {
-                    this.data = response.response;
-                },
-                handleCrudError: function(response) {
-                    document.querySelector('#userNotifier').notify('Error comminucating with API: ' + response);
+                    var model = this;
+
+                    this.asyncMethod(function() {
+                        console.log({model: model});
+                        var id = model.training ? model.training.id : pk;
+                        model.storage.get(model.training.id || model.pk).then(function (response) {
+                            model.training = response;
+                        }).catch(function (e) {
+
+                        });
+                    });
                 }
+                // handleCrudCompleted: function(e, response, element) {
+                //     this.data = response.response;
+                // },
+                // handleCrudError: function(response) {
+                //     document.querySelector('#userNotifier').notify('Error comminucating with API: ' + response);
+                // }
             });
         })();
     </script>

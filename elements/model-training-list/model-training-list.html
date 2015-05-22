@@ -1,26 +1,16 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<!--<link rel="import" href="../../bower_components/baasic-crud/baasic-crud.html">-->
-<link rel="import" href="../drf-crud/drf-crud.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/core-icon/core-icon.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
 
-<polymer-element name="model-training-list" attributes="">
+<polymer-element name="model-training-list" attributes="storageId">
     <template>
-        <drf-crud id="crudElement"
-            geturl="{{baseUrl}}/{{version}}/trainings/"
-            posturl="{{baseUrl}}/{{version}}/trainings/"
-            on-get-completed="{{handleGetCompleted}}"
-            on-get-error="{{handleGetError}}"
-            on-post-completed="{{handlePostCompleted}}"
-            on-post-error="{{handlePostError}}"></drf-crud>
-
         <paper-button raised on-click="{{addDialogAction}}"><core-icon icon="add"></core-icon> Add training</paper-button>
         <core-collapse id="addDialogCollapse">
             <form on-submit="{{addAction}}">
                 <paper-input-decorator floatingLabel label="Name">
-                    <input is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelAddAction}}" id="addNameInput">
+                    <input is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelAddAction}}" value="{{newTraining.name}}" autofocus>
                 </paper-input-decorator>
             </form>
             <div horizontal layout center justified>
@@ -30,72 +20,68 @@
             <hr>
         </core-collapse>
         <div class="trainings">
-            <template repeat="{{trainingPk in trainingPks}}">
+            <template repeat="{{training in data}}">
                 <hr>
-                <model-training on-delete-completed="{{deleteTrainingAction}}" id="training-[[trainingPk]]" pk="{{trainingPk}}"></model-training>
+                <model-training training="{{training}}" storageId="{{storageId}}"></model-training>
             </template>
         </div>
     </template>
     <script>
         (function () {
             Polymer('model-training-list', {
-                baseUrl: 'http://localhost:8001/api',
-                version: 'v1',
                 data: [],
-                trainingPks: [],
-                dataChanged: function(old_data, new_data){
-                    if(old_data.length) {
-                        this.$.crudElement.put({}, JSON.stringify(new_data));
-                    }
+                storage: null,
+                storageIdChanged: function (oldValue, newValue) {
+                  this.storage = document.querySelector('#' + newValue);
                 },
-                extractKeys: function(list, keyName) {
-                    return list.map(function(x) {return x[keyName];});
+
+                newTraining: {
+                    name: '',
+                    version: '3.0'
                 },
+
                 addAction: function(e, details, sender) {
                     e.preventDefault();
-                    var body = {
-                        name: this.$.addNameInput.value,
-                        version: '3.0'
-                    };
-                    this.$.crudElement.post({}, JSON.stringify(body));
-                    this.$.addDialogCollapse.opened = true;
+                    var model = this;
+                    model.storage.post(JSON.stringify(model.newTraining)).then(function () {
+                        model.refresh();
+                        model.$.addDialogCollapse.opened = false;
+                        model.newTraining = {
+                    name: '',
+                    version: '3.0'
+                };
+                    }).catch(function (e) {
+                        model.$.addDialogCollapse.opened = true;
+                    });
+
                 },
                 addDialogAction: function(){
                     this.$.addDialogCollapse.opened = true;
-                    setTimeout(function(){this.$.addNameInput.focus();}.bind(this), 400);
+//                    setTimeout(function(){this.$.addNameInput.focus();}.bind(this), 400);
                 },
                 cancelAddAction: function(){
+                    this.newTraining = {
+                    name: '',
+                    version: '3.0'
+                };
                     this.$.addDialogCollapse.opened = false;
                 },
-                computed: {
-                    trainingPks: 'extractKeys(data, "id")'
+
+                ready: function () {
+                  this.refresh();
                 },
-                domReady: function() {
-                    return this.refresh();
-                },
+
                 refresh: function() {
-                    return this.$.crudElement.get({});
-                },
-                deleteTrainingAction: function(e, details, sender) {
-                    document.querySelector('#userNotifier').notify('Training ' + sender.data.name + ' has been deleted.');
-                    this.refresh();
-                },
-                handleGetCompleted: function(e, response, element) {
-                    this.data = response.response;
-                },
-                handleGetError: function(e, response, element) {
-                    console.log({handleGetError: response});
-                    document.querySelector('#userNotifier').notify('Error getting training list');
-                },
-                handlePostCompleted: function(e, response, element) {
-                    this.$.addNameInput.value = '';
-                    this.refresh();
-                    document.querySelector('#userNotifier').notify('Successfully added training ' + response.response.name);
-                },
-                handlePostError: function(e, response, element) {
-                    console.log({handlePostError: response});
-                    document.querySelector('#userNotifier').notify('Error adding training');
-                    this.$.addDialogCollapse.opened = true;
+                    var model = this;
+
+                    this.asyncMethod(function() {
+                        model.storage.list().then(function (response) {
+                            model.data = response;
+                            console.log(response);
+                        }).catch(function (e) {
+
+                        });
+                    });
                 }
             });
         })();

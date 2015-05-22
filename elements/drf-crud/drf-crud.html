@@ -12,6 +12,13 @@
                      on-core-response="{{onListCompleted}}"
                      on-core-error="{{onListError}}"></baasic-ajax>
         <shadow></shadow>
+        <baasic-ajax id="axDelete"
+                     url="{{deleteUrl}}"
+                     handleAs="text"
+                     contentType="application/text"
+                     method="DELETE"
+                     on-core-response="{{onDeleteCompleted}}"
+                     on-core-error="{{onDeleteError}}"></baasic-ajax>
     </template>
     <script>
         (function () {
@@ -46,7 +53,36 @@
                 },
                 onListError: function (e) {
                     this.fire('list-error', { response: e.detail.response });
+                },
+                promiseList: function (params) {
+                    var ax = this.$.axList;
+                    ax.params = params;
+                    return ax.request();
+                },
+                promiseGet: function (params) {
+                    var ax = this.$.axGet;
+                    ax.params = params;
+                    return ax.request();
+                },
+                promisePost: function (params, body) {
+                    var ax = this.$.axPost;
+                    ax.params = params;
+                    ax.body = body;
+                    return ax.request();
+                },
+                promisePut: function (params, body) {
+                    var ax = this.$.axPut;
+                    ax.params = params;
+                    ax.body = body;
+                    return ax.request();
+                },
+                promiseDelete: function (params) {
+                    var ax = this.$.axDelete;
+                    ax.params = params;
+                    return ax.request();
                 }
+
+
             });
         })();
     </script>
