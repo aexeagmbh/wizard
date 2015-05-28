@@ -1,0 +1,60 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/core-icon/core-icon.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
+
+<polymer-element name="base-model-list-view" attributes="storageId">
+    <template>
+        <base-model id="newModel" storageId="{{storageId}}"></base-model>
+    </template>
+    <script>
+        (function () {
+            Polymer('base-model-list-view', {
+                data: [],
+                storage: null,
+                storageIdChanged: function (oldValue, newValue) {
+                    this.storage = document.querySelector('#' + newValue);
+                },
+
+                computed: {
+                    'newModel': '$.newModel'
+                },
+
+                addAction: function(e, details, sender) {
+                    e.preventDefault();
+                    var self = this;
+                    this.newModel.save().then(function() {
+                        self.$.addDialogCollapse.opened = false;
+                    }).catch(function (e) {
+                        self.$.addDialogCollapse.opened = true;
+                    });
+                },
+                addDialogAction: function(){
+                    this.$.addDialogCollapse.opened = true;
+                    setTimeout(function(){this.$.addNameInput.focus();}.bind(this), 400);
+                },
+                cancelAddAction: function(){
+                    this.newModel.refresh();
+                    this.$.addDialogCollapse.opened = false;
+                },
+
+                ready: function () {
+                    this.refresh();
+                },
+
+                refresh: function() {
+                    var self = this;
+
+                    this.asyncMethod(function() {
+                        self.storage.list().then(function (response) {
+                            self.data = response;
+                        }).catch(function (e) {
+
+                        });
+                    });
+                }
+            });
+        })();
+    </script>
+</polymer-element>

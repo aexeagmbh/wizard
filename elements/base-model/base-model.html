@@ -1,6 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<polymer-element name="base-model" attributes="storageId pk data">
+<polymer-element name="base-model" attributes="storageId pk">
 
     <script>
         (function () {
@@ -17,29 +17,29 @@
                 validators: {},
 
                 computed: {
-                  'isNew': '!data.id'
+                    'isNew': '!pk'
                 },
 
-                ready: function () {
+                pkChanged: function() {
                     this.refresh();
                 },
 
                 storageIdChanged: function (oldValue, newValue) {
-                  this.storage = document.querySelector('#' + newValue);
+                    this.storage = document.querySelector('#' + newValue);
                 },
 
                 save: function () {
-                    var model = this,
+                    var self = this,
                         ret;
                     if (this.isNew) {
-                        ret = this.storage.post(model.data);
+                        ret = this.storage.post(self.data);
                         ret.then(function () {
-                           model.data = model.defaultData;
+                            self.data = JSON.parse(JSON.stringify(self.defaultData));
                         });
                     } else {
-                        ret = this.storage.put(model.data);
+                        ret = this.storage.put(self.data);
                         ret.then(function (data) {
-                           model.data = data;
+                            self.data = data;
                         });
                     }
 
@@ -47,17 +47,18 @@
                 },
 
                 delete: function () {
-                    return this.storage.delete(this.data.id || this.pk);
+                    return this.storage.delete(parseInt(this.pk || this.data.id, 10));
                 },
 
                 refresh: function () {
                     if (this.isNew) {
-
+                        this.data = JSON.parse(JSON.stringify(this.defaultData));
                     } else {
                         this.async(function() {
-                            var ret = this.storage.get(this.data.id || this.pk);
+                            var ret = this.storage.get(parseInt(this.pk || this.data.id, 10));
+                            var self = this;
                             ret.then(function (data) {
-                                this.data = data;
+                                self.data = data;
                             });
 
                             return ret;

@@ -4,86 +4,49 @@
 <link rel="import" href="../../bower_components/core-icon/core-icon.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
 
-<polymer-element name="model-sentence-list" attributes="trainingPk">
+<polymer-element name="model-sentence-list" extends="base-model-list-view" attributes="storageId">
     <template>
-        <drf-crud-store id="storageSentences{{trainingPk}}" singleEndPoint="sentences" listEndPoint="sentences" verboseSingleName="Sentence" verbosePluralName="Sentences" notifierId="userNotifier"></drf-crud-store>
-        <paper-button raised on-click="{{addDialogAction}}"><core-icon icon="add"></core-icon> Add Sentence</paper-button>
-        <core-collapse id="addDialogCollapse">
-            <form on-submit="{{addAction}}" id="addForm">
-                <paper-input-decorator floatingLabel label="Name">
-                    <input is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelAddAction}}" name="Name">
-                </paper-input-decorator>
-            </form>
-            <div horizontal layout center justified>
-                <paper-button on-click="{{cancelAddAction}}"><core-icon icon="cancel"></core-icon> Cancel</paper-button>
-                <paper-button on-click="{{addAction}}"><core-icon icon="add"></core-icon> Add</paper-button>
+        <link rel="stylesheet" href="../../styles/main.css">
+        <more-route context name="sentences" params="{{params}}"></more-route>
+
+        <shadow></shadow>
+        <div class="page" cross-fade>
+            <div horizontal layout end justified>
+                <paper-button class="btn-back" on-tap="{{goToTraining}}"><core-icon icon="arrow-back"></core-icon> Show training</paper-button>
+                <h2>Sentences for {{params.trainingPk}}</h2>
             </div>
+
+            <div horizontal layout end-justified>
+                <paper-button on-click="{{addDialogAction}}"><core-icon icon="add"></core-icon> Add sentence</paper-button>
+            </div>
+
+            <core-collapse id="addDialogCollapse">
+                <form on-submit="{{addAction}}">
+                    <paper-input-decorator floatingLabel label="Name">
+                        <input is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelAddAction}}" value="{{newModel.data.name}}" id="addNameInput">
+                    </paper-input-decorator>
+                </form>
+                <div horizontal layout center justified>
+                    <paper-button on-click="{{cancelAddAction}}"><core-icon icon="cancel"></core-icon> Cancel</paper-button>
+                    <paper-button on-click="{{addAction}}"><core-icon icon="add"></core-icon> Add</paper-button>
+                </div>
+            </core-collapse>
+
             <hr>
-        </core-collapse>
-        <div class="sentences">
-            <template repeat="{{pk in pks}}">
-                <hr>
-                <model-sentence on-delete-completed="{{deleteAction}}" id="sentence[[pk]]" storageId="{{storageId}}" pk="{{pk}}"></model-sentence>
-            </template>
+
+            <div class="sentences">
+                <template repeat="{{sentence in data}}">
+                    <h3>{{sentence.name}}</h3>
+                    <hr>
+                </template>
+            </div>
         </div>
     </template>
     <script>
         (function () {
             Polymer('model-sentence-list', {
-                data: [],
-                pks: [],
-                storage: null,
-                storageIdChanged: function (oldValue, newValue) {
-                  this.storage = document.querySelector('#' + newValue);
-                },
-
-                extractKeys: function(list, keyName) {
-                    return list.map(function(x) {return x[keyName];});
-                },
-                addAction: function(e, details, sender) {
-                    e.preventDefault();
-                    throw new Error("Not implemented");
-                    // var model = this,
-                    //     body = {
-                    //         name: this.$.addNameInput.value,
-                    //         version: '3.0'
-                    //     };
-                    // model.storage.post(JSON.stringify(body)).then(function () {
-                    //     model.refresh();
-                    //     model.$.addDialogCollapse.opened = false;
-                    // }).catch(function (e) {
-                    //     model.$.addDialogCollapse.opened = true;
-                    // });
-
-                },
-                addDialogAction: function(){
-                    this.$.addDialogCollapse.opened = true;
-                    setTimeout(function(){this.$.addNameInput.focus();}.bind(this), 400);
-                },
-                cancelAddAction: function(){
-                    this.$.addDialogCollapse.opened = false;
-                },
-                computed: {
-                    trainingPks: 'extractKeys(data, "id")'
-                },
-                ready: function () {
-                  this.refresh();
-                },
-
-                refresh: function() {
-                    var model = this;
-
-                    this.asyncMethod(function() {
-                        model.storage.list().then(function (response) {
-                            model.data = response.response;
-                        }).catch(function (e) {
-
-                        });
-                    });
-                },
-                deleteTrainingAction: function(e, details, sender) {
-                    document.querySelector('#userNotifier').notify('Training ' + sender.data.name + ' has been deleted.');
-                    this.refresh();
+                goToTraining: function(e, details, sender) {
+                    MoreRouting.navigateTo('training', {trainingPk: this.params.trainingPk});
                 }
             });
         })();

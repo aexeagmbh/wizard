@@ -4,85 +4,50 @@
 <link rel="import" href="../../bower_components/core-icon/core-icon.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
 
-<polymer-element name="model-training-list" attributes="storageId">
+<polymer-element name="model-training-list" extends="base-model-list-view" attributes="storageId">
     <template>
-        <paper-button raised on-click="{{addDialogAction}}"><core-icon icon="add"></core-icon> Add training</paper-button>
-        <core-collapse id="addDialogCollapse">
-            <form on-submit="{{addAction}}">
-                <paper-input-decorator floatingLabel label="Name">
-                    <input is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelAddAction}}" value="{{newTraining.name}}" autofocus>
-                </paper-input-decorator>
-            </form>
-            <div horizontal layout center justified>
-                <paper-button on-click="{{cancelAddAction}}"><core-icon icon="cancel"></core-icon> Cancel</paper-button>
-                <paper-button on-click="{{addAction}}"><core-icon icon="add"></core-icon> Add</paper-button>
+        <link rel="stylesheet" href="../../styles/main.css">
+
+        <shadow></shadow>
+
+        <more-route context name="trainings"></more-route>
+
+        <div class="page" cross-fade>
+            <div horizontal layout start-justified>
+                <h1>Training list</h1>
             </div>
-            <hr>
-        </core-collapse>
-        <div class="trainings">
-            <template repeat="{{training in data}}">
+            <div horizontal layout end-justified>
+                <paper-button on-click="{{addDialogAction}}"><core-icon icon="add"></core-icon> Add training</paper-button>
+            </div>
+            <core-collapse id="addDialogCollapse">
+                <form on-submit="{{addAction}}">
+                    <paper-input-decorator floatingLabel label="Name">
+                        <input is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelAddAction}}" value="{{newModel.data.name}}" id="addNameInput">
+                    </paper-input-decorator>
+                </form>
+                <div horizontal layout center justified>
+                    <paper-button on-click="{{cancelAddAction}}"><core-icon icon="cancel"></core-icon> Cancel</paper-button>
+                    <paper-button on-click="{{addAction}}"><core-icon icon="add"></core-icon> Add</paper-button>
+                </div>
                 <hr>
-                <model-training training="{{training}}" storageId="{{storageId}}"></model-training>
-            </template>
+            </core-collapse>
+
+            <div class="trainings">
+                <template repeat="{{training in data}}">
+                    <hr>
+                    <div horizontal layout center justified>
+                        <h3>{{training.name}}</h3>
+                        <paper-icon-button class="btn-list-show-detail" icon="chevron-right" pk="{{training.id}}" on-tap="{{goToTraining}}"></paper-icon-button>
+                    </div>
+                </template>
+            </div>
         </div>
     </template>
     <script>
         (function () {
             Polymer('model-training-list', {
-                data: [],
-                storage: null,
-                storageIdChanged: function (oldValue, newValue) {
-                  this.storage = document.querySelector('#' + newValue);
-                },
-
-                newTraining: {
-                    name: '',
-                    version: '3.0'
-                },
-
-                addAction: function(e, details, sender) {
-                    e.preventDefault();
-                    var model = this;
-                    model.storage.post(model.newTraining).then(function () {
-//                        model.refresh();
-                        model.$.addDialogCollapse.opened = false;
-                        model.newTraining = {
-                    name: '',
-                    version: '3.0'
-                };
-                    }).catch(function (e) {
-                        model.$.addDialogCollapse.opened = true;
-                    });
-
-                },
-                addDialogAction: function(){
-                    this.$.addDialogCollapse.opened = true;
-//                    setTimeout(function(){this.$.addNameInput.focus();}.bind(this), 400);
-                },
-                cancelAddAction: function(){
-                    this.newTraining = {
-                    name: '',
-                    version: '3.0'
-                };
-                    this.$.addDialogCollapse.opened = false;
-                },
-
-                ready: function () {
-                  this.refresh();
-                },
-
-                refresh: function() {
-                    var model = this;
-
-                    this.asyncMethod(function() {
-                        model.storage.list().then(function (response) {
-                            console.log({refresh: response});
-                            model.data = response;
-                            console.log(response);
-                        }).catch(function (e) {
-
-                        });
-                    });
+                goToTraining: function(e, details, sender) {
+                    MoreRouting.navigateTo('training', {trainingPk: sender.getAttribute('pk')});
                 }
             });
         })();

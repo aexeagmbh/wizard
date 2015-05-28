@@ -1,53 +1,66 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../drf-crud/drf-crud.html">
-<!--<link rel="import" href="../../bower_components/baasic-crud/baasic-crud.html">-->
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
 
-<polymer-element name="model-training" attributes="training storageId">
+<polymer-element name="model-training" attributes="storageId">
     <template>
+        <link rel="stylesheet" href="../../styles/main.css">
+        <more-route context name="training" params="{{params}}"></more-route>
 
-        <base-model id="trainingModel" storageId="{{storageId}}" data="{{training}}"></base-model>
-        
-        <div class="training">
-            <h2>{{trainingData.name}}</h2>
-        <div horizontal layout center>
-            <paper-input-decorator label="Name" floatingLabel="{{true}}">
-                <input value="{{trainingData.name}}" is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelEditAction}}" on-ax-core-input-inline-commit="{{updateAPI}}" autofocus>
-            </paper-input-decorator>
-            <paper-icon-button icon="delete" on-click="{{confirmDeleteAction}}"></paper-icon-button>
-            <paper-action-dialog id="confirmDialog" heading="Delete training?">
-                <p>Do you really want to delete the training "{{trainingData.name}}"?</p>
-                <paper-button dismissive>Cancel</paper-button>
-                <paper-button affirmative on-click="{{deleteAction}}">Confirm</paper-button>
-            </paper-action-dialog>
-        </div>
+        <div class="page" cross-fade>
+            <base-model id="model" storageId="{{storageId}}" pk="{{params.trainingPk}}"></base-model>
+            <div class="training">
+                <div horizontal layout center justified>
+                    <paper-button class="btn-back" on-tap="{{goToList}}"><core-icon icon="arrow-back"></core-icon> Show list</paper-button>
+                    <h2>Training: {{$.model.data.name}}</h2>
+                    <paper-button class="btn-forward" on-tap="{{goToSentences}}"><core-icon icon="arrow-forward"></core-icon> Show sentences</paper-button>
+                </div>
+                <div horizontal layout center>
+                    <div flex>
+                        <paper-input-decorator label="Name" floatingLabel="{{true}}">
+                            <input value="{{$.model.data.name}}" is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelEditAction}}" on-ax-core-input-inline-commit="{{updateAPI}}">
+                        </paper-input-decorator>
+                    </div>
+                    <div>
+                        <paper-icon-button icon="delete" on-click="{{confirmDeleteAction}}"></paper-icon-button>
+                    </div>
+                    <paper-action-dialog id="confirmDialog" heading="Delete training?">
+                        <p>Do you really want to delete the training "{{$.model.data.name}}"?</p>
+                        <paper-button dismissive>Cancel</paper-button>
+                        <paper-button affirmative on-click="{{deleteAction}}">Confirm</paper-button>
+                    </paper-action-dialog>
+                </div>
+            </div>
+            <div>
+                <!-- <drf&#45;crud&#45;store id="storageSentence{{model.data.id}}" singleEndPoint="sentences" listEndPoint="sentences" verboseSingleName="Sentence" verbosePluralName="Sentences" notifierId="userNotifier"></drf&#45;crud&#45;store> -->
+                <!-- <a href="{{ urlFor('sentences', {trainingPk: model.data.id}) }}">Show sentences</a> -->
+                <!-- <model&#45;sentence&#45;list id="sentenceList" storageId="storageSentence{{model.data.id}}" params="{{params}}"></model&#45;sentence&#45;list> -->
+            </div>
         </div>
     </template>
     <script>
         (function () {
             Polymer('model-training', {
-
-                model: null,
-                ready: function () {
-                    this.model = this.$.trainingModel;
-                    this.model.refresh();
-                },
-                computed: {
-                    trainingData: 'model.data'
-                },
-
                 updateAPI: function() {
-                    this.model.save();
+                    this.$.model.save();
                 },
 
                 confirmDeleteAction: function() {
                     this.$.confirmDialog.open();
                 },
                 deleteAction: function() {
-                    this.model.delete();
+                    var self = this;
+                    this.$.model.delete().then(function(){
+                        self.goToList();
+                    });
+                },
+                goToList: function() {
+                    MoreRouting.navigateTo('trainings');
+                },
+                goToSentences: function() {
+                    MoreRouting.navigateTo('sentences', {trainingPk: this.$.model.pk});
                 }
             });
         })();

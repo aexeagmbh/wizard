@@ -3,29 +3,33 @@
 
 <polymer-element name="sentence-synonyms" attributes="">
     <template>
+        <link rel="stylesheet" href="../../styles/main.css">
         <link rel="stylesheet" href="sentence-synonyms.css">
 
+        <more-route context name="synonyms"></more-route>
 
-        <div class="{{sentencePreviewMode ? 'preview' : ''}}" id="sentence-container"
-             on-sentence-synonym-delete="{{deleteSynonymAction}}"
-             on-sentence-synonym-preview="{{sentenceSynonymPreviewAction}}"
-             on-sentence-synonym-preview-cancel="{{sentenceSynonymPreviewCancelAction}}">
-            <sentence-synonym-overlay id="new-synonym" synonym="{{newSynonym}}"></sentence-synonym-overlay>
-            <template repeat="{{synonyms}}">
-                <sentence-synonym-overlay synonym="{{}}"></sentence-synonym-overlay>
-            </template>
-            <div id="raw-sentence" on-mouseup="{{selectTextAction}}">
-                {{text}}
+        <div class="page" cross-fade>
+            <div class="{{sentencePreviewMode ? 'preview' : ''}}" id="sentence-container"
+                 on-sentence-synonym-delete="{{deleteSynonymAction}}"
+                 on-sentence-synonym-preview="{{sentenceSynonymPreviewAction}}"
+                 on-sentence-synonym-preview-cancel="{{sentenceSynonymPreviewCancelAction}}">
+                <sentence-synonym-overlay id="new-synonym" synonym="{{newSynonym}}"></sentence-synonym-overlay>
+                <template repeat="{{synonyms}}">
+                    <sentence-synonym-overlay synonym="{{}}"></sentence-synonym-overlay>
+                </template>
+                <div id="raw-sentence" on-mouseup="{{selectTextAction}}">
+                    {{text}}
+                </div>
             </div>
-        </div>
 
-        <ul on-sentence-synonym-delete="{{deleteSynonymAction}}" on-sentence-synonym-reset="{{resetSynonymAction}}"
-            on-sentence-synonym-create="{{createSynonymAction}}">
-            <li id="newSentenceSynonym" is="sentence-synonym" synonym="{{newSynonym}}" isNew="{{true}}"></li>
-            <template repeat="{{synonyms}}">
-                <li is="sentence-synonym" synonym="{{}}"></li>
-            </template>
-        </ul>
+            <ul on-sentence-synonym-delete="{{deleteSynonymAction}}" on-sentence-synonym-reset="{{resetSynonymAction}}"
+                on-sentence-synonym-create="{{createSynonymAction}}">
+                <li id="newSentenceSynonym" is="sentence-synonym" synonym="{{newSynonym}}" isNew="{{true}}"></li>
+                <template repeat="{{synonyms}}">
+                    <li is="sentence-synonym" synonym="{{}}"></li>
+                </template>
+            </ul>
+        </div>
     </template>
     <script>
         (function () {
