@@ -1,4 +1,4 @@
-# &lt;baasic-crud&gt;
+﻿# &lt;baasic-crud&gt;
 
 > [Baasic](http://www.baasic.com) Web Component providing support for CRUD (Create-Read-Update-Delete)operations on REST endpoints.
 

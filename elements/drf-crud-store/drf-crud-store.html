@@ -4,202 +4,266 @@
 <link rel="import" href="../app-globals/app-globals.html">
 
 
-<polymer-element name="drf-crud-store" attributes="singleEndPoint listEndPoint verboseSingleName verbosePluralName notifierId">
-    <template>
-        <app-globals id="globals"></app-globals>
-        <drf-crud id="drfCrud" listUrl="{{listUrl}}" postUrl="{{postUrl}}" getUrl="{{getUrl}}" putUrl="{{putUrl}}"
-                  deleteUrl="{{deleteUrl}}"></drf-crud>
-    </template>
-    <script>
-        (function () {
+<polymer-element name="drf-crud-store"
+                 attributes="parentObject singleEndPoint listEndPoint verboseSingleName verbosePluralName notifierId prototypeName">
+<template>
+    <app-globals id="globals"></app-globals>
+    <drf-crud id="drfCrud" listUrl="{{listUrl}}" postUrl="{{postUrl}}" getUrl="{{getUrl}}" putUrl="{{putUrl}}"
+              deleteUrl="{{deleteUrl}}"></drf-crud>
+</template>
+<script>
+(function () {
 
 
-            Polymer('drf-crud-store', {
+    Polymer('drf-crud-store', {
 
-                objectList: [],
+//        objectMap: null,
 
-                listEndPoint: null,
-                singleEndPoint: null,
+        listEndPoint: null,
+        singleEndPoint: null,
 
-                listUrl: null,
-                postUrl: null,
-                getUrl: null,
-                putUrl: null,
-                deleteUrl: null,
+        listUrl: null,
+        postUrl: null,
+        getUrl: null,
+        putUrl: null,
+        deleteUrl: null,
 
-                computed: {
-                    listEndPointUrl: '$.globals.values.apiUrl + "/" + listEndPoint + "/"',
-                    singleEndPointUrl: '$.globals.values.apiUrl + "/" + singleEndPoint + "/"'
-                },
+        computed: {
+            listEndPointUrl: '$.globals.values.apiUrl + "/" + listEndPoint + "/"',
+            singleEndPointUrl: '$.globals.values.apiUrl + "/" + singleEndPoint + "/"'
+        },
 
-                items: [],
+        _createObject: function (pk) {
+            if (this.prototypeName) {
+                var obj = new window[this.prototypeName]();
+                obj.storage = this;
+                obj.pk = pk;
+                obj.refresh();
+                return obj;
+            }
 
-                itemKeys: [],
+             return null;
+        },
 
-                _setItems: function (items) {
-                    var self = this;
-                    self.items = items;
-                },
+        _getObject: function (pk) {
+//            console.log([this.objectMap[pk], pk]);
+            return this.objectMap[pk];
+        },
 
-                _setItem: function (item) {
-                    var itemIdx = this._getItemIdx(item.id);
-                    if (itemIdx !== undefined) {
-                        this.items[itemIdx] = item;
-                    } else {
-                        this.items.unshift(item);
-                    }
-                },
+        _getOrCreateObject: function (pk) {
+            return this._getObject(pk) || this._createObject(pk);
+        },
 
-                _getItemIdx: function (id) {
-                    var retIdx;
-                    this.items.forEach(function (item, idx) {
-                       if (item.id === id) {
-                           retIdx = idx;
-                           return false;
-                       }
-                    });
-                    return retIdx;
-
-                },
-
-                _getItem: function (id) {
-                      var ret = this.items.filter(function (item, idx) {
-                         return item.id === id;
-                      }) || [];
-                      return ret[0];
-                },
-
-                _deleteItem: function (id) {
-                    var itemIdx = this._getItemIdx(id);
-                    this.items.splice(itemIdx, 1);
-                },
+        ready: function () {
+            this.objectMap = Object.create(null);
+            this.items = [];
+            this.itemKeys = [];
+        },
 
 
+        fetchObject: function (pk) {
+            var self = this;
+            var p = new Promise(function (resolve, reject) {
 
-                list: function () {
-                    var self = this,
-                        p = new Promise(function (resolve, reject) {
-                            var crud = self.$.drfCrud,
-                                res;
-                            crud.listUrl = self.listEndPointUrl;
+                self.get(pk).then(function (resp) {
+                    var obj = self._getOrCreateObject(pk);
+                    resolve(obj);
+                });
 
-                            res = crud.promiseList({});
-                            res.then(function (response) {
-                                self._setItems(response.response);
-                                resolve(self.items);
-                            }).catch(function (e) {
-                                reject(e);
-                            });
-                        });
-                    p.then(function (payload) {
 
-                    });
-                    p.catch(function (e) {
-                         document.querySelector('#' + self.notifierId).notify('ERROR: Loading ' + self.verbosePluralName + ' failed');
-                    });
-                    return p;
-                },
-                get: function (pk) {
-                    var self = this,
-                        p = new Promise(function (resolve, reject) {
-                            var crud = self.$.drfCrud,
-                                item = self._getItem(pk),
-                                res;
-                            crud.getUrl = self.singleEndPointUrl + pk + "/";
+            });
+          return p;
+        },
 
-                            if (item) {
-                                resolve(item);
-                            } else {
+//        getObjectList: function () {
+////            console.log({store: })
+//            var ret = [];
+//            for (o in this.objectMap) {
+//                ret.push(this.objectMap[o]);
+//            }
+//            return ret;
+//        },
 
-                                res = crud.promiseGet({});
-                                res.then(function (response) {
-                                    self._setItem(response.response);
-                                    resolve(self._getItem(pk));
-                                }).catch(function (e) {
-                                    reject(e);
-                                });
-                            }
-                        });
-                    p.then(function (payload) {
 
-                    });
-                    p.catch(function (e) {
-                         document.querySelector('#' + self.notifierId).notify('ERROR: Loading ' + self.verboseSingleName + ' failed');
-                    });
-                    return p;
-                },
-                post: function (data) {
-                    var self = this,
-                        p = new Promise(function (resolve, reject) {
-                            var crud = self.$.drfCrud,
-                                res;
-                            crud.postUrl = self.singleEndPointUrl;
+        itemsChanged: function () {
+            var self = this;
 
-                            res = crud.promisePost({}, JSON.stringify(data));
-                            res.then(function (response) {
-                                self._setItem(response.response);
-                                resolve(self._getItem(response.id));
-                            }).catch(function (e) {
-                                reject(e);
-                            });
-                        });
-                    p.then(function (payload) {
-                        document.querySelector('#' + self.notifierId).notify(self.verboseSingleName + ' created');
-                    });
-                    p.catch(function (e) {
-                         document.querySelector('#' + self.notifierId).notify('ERROR: Creating ' + self.verboseSingleName + ' failed');
-                    });
-                    return p;
-                },
-                put: function (data, id) {
-                    var self = this,
-                        pk = id || data.id,
-                        p = new Promise(function (resolve, reject) {
-                            var crud = self.$.drfCrud,
-                                res;
-                            crud.putUrl = self.singleEndPointUrl + pk + "/";
+//            self.objectList = [];
+            this.items.forEach(function (item) {
+                var itemId = item.id,
 
-                            res = crud.promisePut({}, JSON.stringify(data));
-                            res.then(function (payload) {
-                                resolve(payload.response);
-                            }).catch(function (e) {
-                                reject(e);
-                            });
-                        });
-                    p.then(function (payload) {
-                        document.querySelector('#' + self.notifierId).notify(self.verboseSingleName + ' updated');
-                    });
-                    p.catch(function (e) {
-                         document.querySelector('#' + self.notifierId).notify('ERROR: Saving ' + self.verboseSingleName + ' failed');
-                    });
-                    return p;
-                },
-                delete: function (pk) {
-                    var self = this,
-                        p = new Promise(function (resolve, reject) {
-                            var crud = self.$.drfCrud,
-                                res;
-                            crud.deleteUrl = self.singleEndPointUrl + pk + "/";
+                    obj = self._getOrCreateObject(itemId);
+                    self.objectMap[itemId] = obj;
+//                    self.objectList.push(obj);
+            });
+        },
 
-                            res = crud.promiseDelete({});
-                            res.then(function (payload) {
-                                console.log({'delete': self.items});
-                                self._deleteItem(pk);
 
-                                resolve(payload);
-                            }).catch(function (e) {
-                                reject(e);
-                            });
-                        });
-                    p.then(function (payload) {
-                        document.querySelector('#' + self.notifierId).notify(self.verboseSingleName + ' deleted');
-                    });
-                    p.catch(function (e) {
-                         document.querySelector('#' + self.notifierId).notify('ERROR: Deleting ' + self.verboseSingleName + ' failed');
-                    });
-                    return p;
+        _setItems: function (items) {
+            var self = this;
+            self.items = items;
+        },
+
+        _setItem: function (item) {
+            var itemIdx = this._getItemIdx(item.id);
+            if (itemIdx !== undefined) {
+                this.items[itemIdx] = item;
+            } else {
+                this.items.unshift(item);
+            }
+        },
+
+        _getItemIdx: function (id) {
+            var retIdx;
+            this.items.forEach(function (item, idx) {
+                if (item.id === id) {
+                    retIdx = idx;
+                    return false;
                 }
             });
-        })();
-    </script>
+            return retIdx;
+
+        },
+
+        _getItem: function (id) {
+
+            var ret = this.items.filter(function (item, idx) {
+                return item.id === id;
+            }) || [];
+            return ret[0];
+        },
+
+        _deleteItem: function (id) {
+            var itemIdx = this._getItemIdx(id);
+            delete this.objectMap[id];
+            this.items.splice(itemIdx, 1);
+        },
+
+        _displayMessage: function (msg) {
+            document.querySelector('#' + this.notifierId).notify(msg);
+        },
+
+        list: function () {
+            var self = this,
+                    p = new Promise(function (resolve, reject) {
+                        var crud = self.$.drfCrud,
+                                res;
+                        self.listUrl = self.listEndPointUrl;
+                        res = crud.promiseList({});
+                        res.then(function (response) {
+                            self._setItems(response.response);
+                            resolve(self.items);
+                        }).catch(function (e) {
+                            reject(e);
+                        });
+                    });
+            p.then(function (payload) {
+
+            });
+            p.catch(function (e) {
+                self._displayMessage('ERROR: Loading ' + self.verbosePluralName + ' failed');
+            });
+            return p;
+        },
+        get: function (pk) {
+            var self = this,
+                    p = new Promise(function (resolve, reject) {
+                        var crud = self.$.drfCrud,
+                                item = self._getItem(pk),
+                                res;
+                        self.getUrl = self.singleEndPointUrl + pk + "/";
+                        if (item) {
+                            resolve(item);
+                        } else {
+
+                            res = crud.promiseGet({});
+                            res.then(function (response) {
+                                self._setItem(response.response);
+                                resolve(self._getItem(pk));
+                            }).catch(function (e) {
+                                reject(e);
+                            });
+                        }
+                    });
+            p.then(function (payload) {
+
+            });
+            p.catch(function (e) {
+                document.querySelector('#' + self.notifierId).notify('ERROR: Loading ' + self.verboseSingleName + ' failed');
+            });
+            return p;
+        },
+        post: function (data) {
+            var self = this,
+                    p = new Promise(function (resolve, reject) {
+                        var crud = self.$.drfCrud,
+                                res;
+                        self.postUrl = self.singleEndPointUrl;
+
+                        res = crud.promisePost({}, JSON.stringify(data));
+                        res.then(function (response) {
+                            self._setItem(response.response);
+                            resolve(self._getItem(response.id));
+                        }).catch(function (e) {
+                            reject(e);
+                        });
+                    });
+            p.then(function (payload) {
+                document.querySelector('#' + self.notifierId).notify(self.verboseSingleName + ' created');
+            });
+            p.catch(function (e) {
+                document.querySelector('#' + self.notifierId).notify('ERROR: Creating ' + self.verboseSingleName + ' failed');
+            });
+            return p;
+        },
+        put: function (data, id) {
+            var self = this,
+                    pk = id || data.id,
+                    p = new Promise(function (resolve, reject) {
+                        var crud = self.$.drfCrud,
+                                res;
+                        self.putUrl = self.singleEndPointUrl + pk + "/";
+
+                        res = crud.promisePut({}, JSON.stringify(data));
+                        res.then(function (payload) {
+                            resolve(payload.response);
+                        }).catch(function (e) {
+                            reject(e);
+                        });
+                    });
+            p.then(function (payload) {
+                document.querySelector('#' + self.notifierId).notify(self.verboseSingleName + ' updated');
+            });
+            p.catch(function (e) {
+                document.querySelector('#' + self.notifierId).notify('ERROR: Saving ' + self.verboseSingleName + ' failed');
+            });
+            return p;
+        },
+        delete: function (pk) {
+            var self = this,
+                    p = new Promise(function (resolve, reject) {
+                        var crud = self.$.drfCrud,
+                                res;
+                        self.deleteUrl = self.singleEndPointUrl + pk + "/";
+
+                        res = crud.promiseDelete({});
+                        res.then(function (payload) {
+                            self._deleteItem(pk);
+
+                            resolve(payload);
+                        }).catch(function (e) {
+                            reject(e);
+                        });
+                    });
+            p.then(function (payload) {
+                document.querySelector('#' + self.notifierId).notify(self.verboseSingleName + ' deleted');
+            });
+            p.catch(function (e) {
+                document.querySelector('#' + self.notifierId).notify('ERROR: Deleting ' + self.verboseSingleName + ' failed');
+            });
+            return p;
+        }
+    });
+})();
+</script>
 </polymer-element>

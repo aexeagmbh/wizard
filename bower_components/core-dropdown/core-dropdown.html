@@ -101,6 +101,14 @@ not scroll with its container.
     return ((t = document.documentElement) || (t = document.body.parentNode)) && (typeof t[property] === 'number') ? t : document.body;
   }
 
+  // View width and height excluding any visible scrollbars
+  // http://www.highdots.com/forums/javascript/faq-topic-how-do-i-296669.html
+  //    1) document.client[Width|Height] always reliable when available, including Safari2
+  //    2) document.documentElement.client[Width|Height] reliable in standards mode DOCTYPE, except for Safari2, Opera<9.5
+  //    3) document.body.client[Width|Height] is gives correct result when #2 does not, except for Safari2
+  //    4) When document.documentElement.client[Width|Height] is unreliable, it will be size of <html> element either greater or less than desired view size
+  //       https://bugzilla.mozilla.org/show_bug.cgi?id=156388#c7
+  //    5) When document.body.client[Width|Height] is unreliable, it will be size of <body> element less than desired view size
   function viewSize() {
     // This algorithm avoids creating test page to determine if document.documentElement.client[Width|Height] is greater then view size,
     // will succeed where such test page wouldn't detect dynamic unreliability,
@@ -132,7 +140,7 @@ not scroll with its container.
        * The horizontal alignment of the popup relative to `relatedTarget`. `left`
        * means the left edges are aligned together. `right` means the right edges
        * are aligned together.
-       * 
+       *
        * Accepted values: 'left', 'right'
        *
        * @attribute halign
@@ -152,7 +160,7 @@ not scroll with its container.
        * @type String
        * @default 'top'
        */
-      valign: 'top',
+      valign: 'top'
 
     },
 
@@ -187,6 +195,8 @@ not scroll with its container.
         style[dims.position.v] = null;
         dims.position.v_by = null;
       }
+
+      var style = this.sizingTarget.style;
       style.width = null;
       style.height = null;
       this.super();

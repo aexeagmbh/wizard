@@ -1,50 +1,13 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/paper-input/paper-input.html">
-<link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="../base-model/base-model.html">
 
-<polymer-element name="model-sentence" attributes="sentence storageId">
-    <template>
+<polymer-element name="model-sentence" extends="base-model" constructor="Sentence">
 
-        <base-model id="sentenceModel" storageId="{{storageId}}" data="{{sentence}}"></base-model>
-        
-        <div class="sentence">
-            <h2>{{model.data.name}}</h2>
-        <div horizontal layout center>
-            <paper-input-decorator label="Name" floatingLabel="{{true}}">
-                <input value="{{model.data.name}}" is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelEditAction}}" on-ax-core-input-inline-commit="{{updateAPI}}">
-            </paper-input-decorator>
-            <paper-icon-button icon="delete" on-click="{{confirmDeleteAction}}"></paper-icon-button>
-            <paper-action-dialog id="confirmDialog" heading="Delete sentence?">
-                <p>Do you really want to delete the training "{{model.data.name}}"?</p>
-                <paper-button dismissive>Cancel</paper-button>
-                <paper-button affirmative on-click="{{deleteAction}}">Confirm</paper-button>
-            </paper-action-dialog>
-        </div>
-        </div>
-    </template>
-    <script>
-        (function () {
-            Polymer('model-sentence', {
-
-                model: null,
-                ready: function () {
-                    this.model = this.$.sentenceModel;
-                    this.model.refresh();
-                },
-
-                updateAPI: function() {
-                    this.model.save();
-                },
-
-                confirmDeleteAction: function() {
-                    this.$.confirmDialog.open();
-                },
-                deleteAction: function() {
-                    this.model.delete();
-                }
-            });
-        })();
-    </script>
+  <script>
+    (function () {
+      Polymer('model-sentence', {
+        // define element prototype here
+      });
+    })();
+  </script>
 </polymer-element>

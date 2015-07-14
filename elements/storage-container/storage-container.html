@@ -1,0 +1,61 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="storage-container" attributes="params">
+    <template>
+        <drf-crud-store id="storageTraining" singleEndPoint="trainings" listEndPoint="trainings"
+                        verboseSingleName="Training" verbosePluralName="Trainings" prototypeName="Training"
+                        notifierId="userNotifier"></drf-crud-store>
+        <drf-crud-store id="storageSentence" singleEndPoint="sentences"
+                        listEndPoint="trainings/{{params.trainingPk}}/sentences"
+                        verboseSingleName="Sentence" verbosePluralName="Sentences" prototypeName="Sentence"
+                        notifierId="userNotifier"></drf-crud-store>
+        <drf-crud-store id="storageSentenceVariant" singleEndPoint="sentence-variant"
+                        listEndPoint="sentences/{{params.sentencePk}}/variants"
+                        verboseSingleName="Sentence Variant" verbosePluralName="Sentence Variants"
+                        prototypeName="SentenceVariant"
+                        notifierId="userNotifier"></drf-crud-store>
+        <drf-crud-store id="storageSentenceVariantSynonym" singleEndPoint="sentence-variant-synonyms"
+                        listEndPoint="sentence-variant/{{params.variantPk}}/synonyms"
+                        verboseSingleName="Sentence Variant Synonym" verbosePluralName="Sentence Variant Synonyms"
+                        prototypeName="SentenceVariantSynonym"
+                        notifierId="userNotifier"></drf-crud-store>
+        <drf-crud-store id="storageSentenceVariantSynonymValue" singleEndPoint="sentence-variant-synonym-values"
+                        listEndPoint="sentence-variant-synonyms/{{params.synonymPk}}/values"
+                        verboseSingleName="Sentence Variant Synonym Value" verbosePluralName="Sentence Variant Synonym Valuess"
+                        prototypeName="SentenceVariantSynonymValue"
+                        notifierId="userNotifier"></drf-crud-store>
+
+    </template>
+    <script>
+        (function () {
+            Polymer('storage-container', {
+                // define element prototype here
+
+                getList: function (type) {
+                    return this.$['storage' + type].list();
+                },
+
+                getObject: function (type, pk) {
+                    return this.$['storage' + type].fetchObject(pk);
+                },
+
+                getStorage: function (type) {
+                    var self = this;
+                    var p = new Promise(function (resolve, reject) {
+                        var storage = self.$['storage' + type];
+                        if (storage) {
+                            resolve(storage);
+                        } else {
+                            console.log('No storage found ' + type);
+                            reject('No storage found');
+                        }
+                    });
+
+                    return p;
+                }
+
+
+            });
+        })();
+    </script>
+</polymer-element>

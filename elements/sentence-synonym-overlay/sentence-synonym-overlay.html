@@ -1,56 +1,115 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<polymer-element name="sentence-synonym-overlay" attributes="synonym">
+<polymer-element name="sentence-synonym-overlay" attributes="synonym sentencePreviewMode  synonymPk variant storageId">
     <template>
         <link rel="stylesheet" href="sentence-synonym-overlay.css">
-
-        <div id="textWithHighlightContainer" class="{{sentencePreviewMode ? 'preview' : ''}}" style="color: {{synonym.synonymColor}};">
-            <div  id="textWithHighlight"  on-sentence-synonym-preview="{{sentenceSynonymPreviewAction}}" on-sentence-synonym-preview-cancel="{{sentenceSynonymPreviewCancelAction}}"></div>
+        <div id="textWithHighlightContainer" class="{{sentencePreviewMode ? 'preview' : ''}}" style="color: {{synonymColor}};">
+            <div id="textWithHighlight"  on-sentence-synonym-preview="{{sentenceSynonymPreviewAction}}" on-sentence-synonym-preview-cancel="{{sentenceSynonymPreviewCancelAction}}"></div>
         </div>
     </template>
     <script>
         (function () {
+            var escapeRegExp;
+
+            (function () {
+              // http://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
+
+              // Referring to the table here:
+              // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/regexp
+              // these characters should be escaped
+              // \ ^ $ * + ? . ( ) | { } [ ]
+              // These characters only have special meaning inside of brackets
+              // they do not need to be escaped, but they MAY be escaped
+              // without any adverse effects (to the best of my knowledge and casual testing)
+              // : ! , =
+              // my test "~!@#$%^&*(){}[]`/=?+\|-_;:'\",<.>".match(/[\#]/g)
+
+              var specials = [
+                    // order matters for these
+                      "-"
+                    , "["
+                    , "]"
+                    // order doesn't matter for any of these
+                    , "/"
+                    , "{"
+                    , "}"
+                    , "("
+                    , ")"
+                    , "*"
+                    , "+"
+                    , "?"
+                    , "."
+                    , "\\"
+                    , "^"
+                    , "$"
+                    , "|"
+                  ]
+
+                  // I choose to escape every character with '\'
+                  // even though only some strictly require it when inside of []
+                , regex = RegExp('[' + specials.join('\\') + ']', 'g')
+                ;
+
+              escapeRegExp = function (str) {
+                return str.replace(regex, "\\$&");
+              };
+            }());
+
             Polymer('sentence-synonym-overlay', {
 
                 textWithHighlight: '',
 
                 computed: {
-                    synonymName: 'synonym.name'
+                    synonymName: 'modelSynonym.data.text',
+                    rawText: 'variant.data.text',
+                    synonym: 'modelSynonym.data',
+                    synonymColor: 'modelSynonym.synonymColor'
                 },
 
-                sentencePreviewMode: false,
+                synonymPkChanged: function (oldVal, newVal) {
+                    var self = this;
+                        document.querySelector('#storageContainer').getObject('SentenceVariantSynonym', newVal).then(function (sentenceVariantSynonym) {
+                            sentenceVariantSynonym.refresh().then(function (obj) {
+                                self.modelSynonym = obj;
+                            });
+                        });
+                },
 
                 synonymNameChanged: function () {
-                    console.log('synonymNameChanged');
                     this.synonymChanged();
                 },
 
-
                 cancelSynonymAction: function () {
-
                 },
 
                 sentenceSynonymPreviewAction: function () {
-                    console.log('sentenceSynonymPreviewAction');
-                    this.sentencePreviewMode = true;
-                },
-                sentenceSynonymPreviewCancelAction: function () {
-                    this.sentencePreviewMode = false;
+//                    this.sentencePreviewMode = true;
                 },
 
+                sentenceSynonymPreviewCancelAction: function () {
+//                    this.sentencePreviewMode = false;
+                },
 
                 clickAction: function () {
                 },
 
                 synonymChanged: function () {
-                    var re;
-                    if (!this.synonym.name) {
-                        this.textWithHighlight = this.synonym._rawText;
-                    } else {
-                        re = new RegExp(this.synonym.name, 'g');
-                        this.textWithHighlight = this.synonym._rawText.replace(re, '<sentence-synonym-overlay-inline synonym="{{synonym}}" isPreview="[[sentencePreviewMode]]"></sentence-synonym-overlay-inline>');
-                    }
-                    this.injectBoundHTML(this.textWithHighlight, this.$.textWithHighlight);
+                    console.log({synonymChanged: [this.synonymName, this.rawText]});
+                    var self = this;
+                    this.asyncMethod(function() {
+                        var re,
+                            matches;
+                        if (!self.synonymName) {
+                            self.textWithHighlight = self.rawText || '';
+                        } else {
+                            re = new RegExp(escapeRegExp(self.synonymName), 'g');
+                            matches = (self.rawText.match(re));
+                            self.modelSynonym.numberMatches = matches ? matches.length : 0;
+
+                            self.textWithHighlight = self.rawText.replace(re, '<sentence-synonym-overlay-inline synonymPk="{{synonymPk}}" storageId="{{storageId}}" isPreview="[[sentencePreviewMode]]"></sentence-synonym-overlay-inline>');
+                        }
+                        self.injectBoundHTML(self.textWithHighlight, self.$.textWithHighlight);
+                    });
                 }
             });
         })();

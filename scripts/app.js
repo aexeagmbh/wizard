@@ -1,1 +1,1 @@
-!function(e){"use strict";var t=e.querySelector("#app");t.addEventListener("template-bound",function(){console.log("Our app is ready to rock!")})}(wrap(document));
+!function(a){"use strict";var b=a.querySelector("#app");b.addEventListener("template-bound",function(){console.log("Our app is ready to rock!")})}(wrap(document));

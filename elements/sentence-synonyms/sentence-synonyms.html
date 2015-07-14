@@ -1,41 +1,160 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
 
-<polymer-element name="sentence-synonyms" attributes="">
+<polymer-element name="sentence-synonyms" extends="base-model-list-view" attributes="storageId">
     <template>
         <link rel="stylesheet" href="../../styles/main.css">
         <link rel="stylesheet" href="sentence-synonyms.css">
 
-        <more-route context name="synonyms"></more-route>
+        <more-route id="currentRoute" context name="synonyms" params="{{params}}"></more-route>
 
         <div class="page" cross-fade>
+
             <div class="{{sentencePreviewMode ? 'preview' : ''}}" id="sentence-container"
-                 on-sentence-synonym-delete="{{deleteSynonymAction}}"
                  on-sentence-synonym-preview="{{sentenceSynonymPreviewAction}}"
                  on-sentence-synonym-preview-cancel="{{sentenceSynonymPreviewCancelAction}}">
-                <sentence-synonym-overlay id="new-synonym" synonym="{{newSynonym}}"></sentence-synonym-overlay>
-                <template repeat="{{synonyms}}">
-                    <sentence-synonym-overlay synonym="{{}}"></sentence-synonym-overlay>
+                <template repeat="{{synonym in objectList}}">
+                    <sentence-synonym-overlay synonymPk="{{synonym.data.id}}"
+                                              variant="{{sentenceVariant}}"
+                                              storageId="{{storageId}}"
+                                              sentencePreviewMode="{{false}}"></sentence-synonym-overlay>
                 </template>
                 <div id="raw-sentence" on-mouseup="{{selectTextAction}}">
                     {{text}}
                 </div>
             </div>
 
-            <ul on-sentence-synonym-delete="{{deleteSynonymAction}}" on-sentence-synonym-reset="{{resetSynonymAction}}"
-                on-sentence-synonym-create="{{createSynonymAction}}">
-                <li id="newSentenceSynonym" is="sentence-synonym" synonym="{{newSynonym}}" isNew="{{true}}"></li>
-                <template repeat="{{synonyms}}">
-                    <li is="sentence-synonym" synonym="{{}}"></li>
-                </template>
-            </ul>
+            <div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>
+                                Synonym
+                            </th>
+                            <th>
+                                Number of matches
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <template repeat="{{synonym in objectList}}">
+                        <tr>
+                            <th>{{synonym.data.text}}</th>
+                            <th>{{synonym.numberMatches}}</th>
+                        </tr>
+                    </template>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </template>
     <script>
         (function () {
-            Polymer({
-                ready: function () {
+
+            var escapeRegExp;
+
+            (function () {
+              // http://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
+
+              // Referring to the table here:
+              // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/regexp
+              // these characters should be escaped
+              // \ ^ $ * + ? . ( ) | { } [ ]
+              // These characters only have special meaning inside of brackets
+              // they do not need to be escaped, but they MAY be escaped
+              // without any adverse effects (to the best of my knowledge and casual testing)
+              // : ! , =
+              // my test "~!@#$%^&*(){}[]`/=?+\|-_;:'\",<.>".match(/[\#]/g)
+
+              var specials = [
+                    // order matters for these
+                      "-"
+                    , "["
+                    , "]"
+                    // order doesn't matter for any of these
+                    , "/"
+                    , "{"
+                    , "}"
+                    , "("
+                    , ")"
+                    , "*"
+                    , "+"
+                    , "?"
+                    , "."
+                    , "\\"
+                    , "^"
+                    , "$"
+                    , "|"
+                  ]
+
+                  // I choose to escape every character with '\'
+                  // even though only some strictly require it when inside of []
+                , regex = RegExp('[' + specials.join('\\') + ']', 'g')
+                ;
+
+              escapeRegExp = function (str) {
+                return str.replace(regex, "\\$&");
+              };
+            }());
+
+
+
+            Polymer('sentence-synonyms', {
+
+                computed: {
+                    text: 'sentenceVariant.data.text',
+                    variantPk: 'params.variantPk',
+                    synonyms: 'data'
                 },
+
+                dataChanged: function () {
+                    var self = this;
+                    console.log('dataChanged');
+                    self._getStorage('SentenceVariantSynonym').then(function (storage) {
+                        var ret = [];
+                        for (o in storage.objectMap) {
+                            ret.push(storage.objectMap[o]);
+                        }
+                        self.objectList = ret;
+                    });
+                },
+
+                _loadVariant: function (variantPk) {
+                    var self = this,
+                            variantP;
+
+                    var p = this._getStorage('SentenceVariant').then(function (storage) {
+                        variantP = storage.fetchObject(variantPk);
+                        variantP.then(function (variant) {
+                            self.sentenceVariant = variant;
+                        });
+
+                    });
+
+                    return variantP;
+                },
+
+                variantPkChanged: function (oldVal, newVal) {
+                    var self = this;
+                    if (this.$.currentRoute.route.active) {
+                        console.log('variantPkChanged');
+
+                        this._loadVariant(newVal);
+                        this.refresh();
+                    }
+                },
+//                refresh: function() {
+//                    var self = this;
+//
+//                    this.asyncMethod(function() {
+//
+//                        self.storage.list().then(function (response) {
+//                            self.data = response;
+//                        }).catch(function (e) {
+//
+//                        });
+//                    });
+//                },
 
                 synonymColors: [
                     '#ff0000',
@@ -52,15 +171,15 @@
                     return this.synonymColors[(idx % this.synonymColors.length)];
                 },
 
-                sentenceSynonymPreviewAction: function () {
-                    console.log('sentenceSynonymPreviewAction');
-                    this.sentencePreviewMode = true;
-                },
-
-                sentenceSynonymPreviewCancelAction: function () {
-                    console.log('synonyms sentenceSynonymPreviewCancelAction');
-                    this.sentencePreviewMode = false;
-                },
+//                sentenceSynonymPreviewAction: function () {
+//                    console.log('sentenceSynonymPreviewAction');
+//                    this.sentencePreviewMode = true;
+//                },
+//
+//                sentenceSynonymPreviewCancelAction: function () {
+//                    console.log('synonyms sentenceSynonymPreviewCancelAction');
+//                    this.sentencePreviewMode = false;
+//                },
 
                 selectTextAction: function () {
                     var sel,
@@ -84,34 +203,20 @@
 
                     }
                     return false;
-
-
                 },
+
                 newSynonymAction: function (name) {
-                    this.newSynonym.name = name;
-                    this.createSynonymAction(null, this.newSynonym);
-                },
+                    var self = this;
+                    self._getStorage('SentenceVariantSynonym').then(function (storage) {
 
-                synonyms: [],
-
-                text: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est.',
-
-                newSynonym: {_rawText: 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est.',
-                    replacements: []},
-                deleteSynonymAction: function (e, item) {
-                    console.log('deleteSynonymAction');
-                    var idx = this.synonyms.indexOf(item);
-                    this.synonyms.splice(idx, 1);
-                },
-                resetSynonymAction: function (e, changedItem) {
-                    var idx = this.synonyms.indexOf(changedItem[0]);
-                    this.synonyms[idx] = changedItem[1];
-                },
-                createSynonymAction: function (e, item) {
-                    console.log('createSynonymAction');
-                    item.synonymColor = this._getSynonymColor(this.synonyms.length);
-                    this.synonyms.unshift(item);
-                    this.newSynonym = {_rawText: this.text, replacements: []};
+                        var newSynonym = new SentenceVariantSynonym();
+                        newSynonym.storage = storage;
+                        newSynonym.sentenceVariantId = self.variantPk;
+                        newSynonym.refresh().then(function (newSynonymModel) {
+                            newSynonymModel.data.text = name;
+                            newSynonymModel.save();
+                        });
+                    });
                 }
 
             });

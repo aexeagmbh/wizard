@@ -1,4 +1,4 @@
-# &lt;baasic-globals&gt;
+﻿# &lt;baasic-globals&gt;
 
 > [Baasic](http://www.baasic.com) Web Component providing basic application-wide configuration settings and globals varables.
 

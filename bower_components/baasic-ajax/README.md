@@ -1,4 +1,4 @@
-# &lt;baasic-ajax&gt;
+﻿# &lt;baasic-ajax&gt;
 
 > [Baasic](http://www.baasic.com) version of the [core-ajax](http://polymer.github.io/core-ajax/) Web Component providing support for application-wide authentication.
 

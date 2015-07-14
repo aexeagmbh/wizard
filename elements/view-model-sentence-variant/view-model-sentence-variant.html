@@ -1,0 +1,73 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="view-model-sentence-variant" attributes="storageId">
+    <template>
+        <more-route id="currentRoute" context name="variant" params="{{params}}"></more-route>
+        <!--<model-sentence-variant id="model-variant" storageId="{{storageId}}"-->
+                                <!--pk="{{params.variantPk}}"></model-sentence-variant>-->
+
+        <div horizontal layout center justified>
+            <paper-button class="btn-back" on-tap="{{goToList}}">
+                <core-icon icon="arrow-back"></core-icon>
+                Show list
+            </paper-button>
+            <h2>Variant: {{modelVariant.data.text}}</h2>
+            <paper-button class="btn-forward" on-tap="{{goToSynonyms}}">
+                <core-icon icon="arrow-forward"></core-icon>
+                Show synonyms
+            </paper-button>
+        </div>
+        <div horizontal layout center>
+            <paper-input-decorator label="Text" floatingLabel="{{true}}">
+                <input value="{{modelVariant.data.text}}" is="ax-core-input-inline"
+                       on-ax-core-input-inline-cancel="{{cancelEditAction}}"
+                       on-ax-core-input-inline-commit="{{updateAPI}}">
+            </paper-input-decorator>
+            <paper-icon-button icon="delete" on-click="{{confirmDeleteAction}}"></paper-icon-button>
+            <paper-action-dialog id="confirmDialog" heading="Delete variant?">
+                <p>Do you really want to delete the variant "{{modelVariant.data.text}}"?</p>
+                <paper-button dismissive>Cancel</paper-button>
+                <paper-button affirmative on-click="{{deleteAction}}">Confirm</paper-button>
+            </paper-action-dialog>
+        </div>
+    </template>
+    <script>
+        (function () {
+            Polymer('view-model-sentence-variant', {
+                computed: {
+                    modelVariantPk: 'params.variantPk'
+                },
+
+                modelVariantPkChanged: function (oldVal, newVal) {
+                    var self = this;
+                    if (this.$.currentRoute.route.active) {
+                        document.querySelector('#storageContainer').getObject('SentenceVariant', newVal).then(function (sentenceVariant) {
+                            sentenceVariant.refresh().then(function (obj) {
+                              console.log({'modelVariantPkChanged': obj});
+
+                                self.modelVariant = obj;
+                            });
+                        });
+                    }
+                },
+
+                updateAPI: function () {
+                    this.modelVariant.save();
+                },
+
+                confirmDeleteAction: function () {
+                    this.$.confirmDialog.open();
+                },
+                deleteAction: function () {
+                    this.modelVariant.delete();
+                },
+                goToList: function () {
+                    MoreRouting.navigateTo('variants', {trainingPk: this.params.trainingPk, sentencePk: this.params.sentencePk});
+                },
+                goToSynonyms: function () {
+                    MoreRouting.navigateTo('synonyms', {trainingPk: this.params.trainingPk, sentencePk: this.params.sentencePk});
+                }
+            });
+        })();
+    </script>
+</polymer-element>

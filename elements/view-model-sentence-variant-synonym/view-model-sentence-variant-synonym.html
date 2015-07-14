@@ -1,0 +1,39 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="view-model-sentence-variant-synonym" attributes="storageId ">
+    <template>
+        <link rel="stylesheet" href="view-model-sentence-variant-synonym.css">
+
+        <more-route id="currentRoute" context name="synonym" params="{{params}}"></more-route>
+
+        <model-sentence-variant-synonym id="synonym" storageId="{{storageId}}"
+                                        pk="{{params.synonymPk}}"></model-sentence-variant-synonym>
+        <model-sentence-variant id="sentenceVariant" storageId="storageSentenceVariant"
+                                pk="{{params.variantPk}}"></model-sentence-variant>
+
+        <div class="page" cross-fade>
+            <h1>Synonym</h1>
+            <div class="preview" id="sentence-container">
+            <sentence-synonym-overlay synonymPk="{{synonym.data.id}}" variant="{{sentenceVariant}}"
+                                              storageId="{{storageId}}"
+                                              synonymColor="{{(synonym.highlightColorIdx)}}"
+                    sentencePreviewMode="{{true}}"></sentence-synonym-overlay>
+            </div>
+        </div>
+
+
+    </template>
+    <script>
+        (function () {
+            Polymer('view-model-sentence-variant-synonym', {
+
+                computed: {
+                    synonym: '$.synonym',
+                    sentenceVariant: '$.sentenceVariant'
+                }
+
+            });
+        })();
+    </script>
+</polymer-element>
+

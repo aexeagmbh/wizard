@@ -1,11 +1,12 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<polymer-element name="base-model" attributes="storageId pk">
+<polymer-element name="base-model" attributes="storageId pk ">
 
     <script>
         (function () {
             Polymer('base-model', {
                 storage: null,
+
                 defaultData: {
                     id: null,
                     created: null,
@@ -17,53 +18,111 @@
                 validators: {},
 
                 computed: {
-                    'isNew': '!pk'
+                    'isNew': '!pk',
+                    'storageKey': 'storageId || storage.id'
                 },
 
-                pkChanged: function() {
+                pkChanged: function () {
                     this.refresh();
                 },
 
-                storageIdChanged: function (oldValue, newValue) {
-                    this.storage = document.querySelector('#' + newValue);
+               _getStorage: function () {
+                    var self = this;
+                    var p = new Promise(function (resolve, reject) {
+                        var storageContainer = document.querySelector('#storageContainer');
+
+                        if (!self.storageKey) {
+                            console.log(self.id);
+                        }
+
+                        storageContainer.getStorage(self.storageKey.replace('storage','')).then(function (storage) {
+                            if (storage) {
+                                resolve(storage);
+                            } else {
+                                reject();
+                            }
+
+                        }, function (e) {
+                            reject();
+                        });
+
+                    });
+
+                    return p;
                 },
 
                 save: function () {
                     var self = this,
-                        ret;
-                    if (this.isNew) {
-                        ret = this.storage.post(self.data);
-                        ret.then(function () {
-                            self.data = JSON.parse(JSON.stringify(self.defaultData));
-                        });
-                    } else {
-                        ret = this.storage.put(self.data);
-                        ret.then(function (data) {
-                            self.data = data;
-                        });
-                    }
+                        ret, p;
 
-                    return ret;
+                    p = new Promise(function (resolve, reject) {
+                        self._getStorage().then(function (storage) {
+                            if (self.isNew) {
+                                ret = storage.post(self.data);
+                                ret.then(function () {
+                                    self.data = JSON.parse(JSON.stringify(self.defaultData));
+                                });
+                            } else {
+                                ret = storage.put(self.data);
+                                ret.then(function (data) {
+                                    self.data = data;
+                                });
+                            }
+
+                            resolve(ret);
+
+                        });
+                    });
+
+
+                    return p;
                 },
 
                 delete: function () {
-                    return this.storage.delete(parseInt(this.pk || this.data.id, 10));
+                    var self = this,
+                        p = new Promise(function (resolve, reject) {
+                            self._getStorage().then(function (storage) {
+                                storage.delete(parseInt(self.pk || self.data.id, 10)).then(function (resp) {
+                                    resolve(resp);
+                                }, function (e) {
+                                    reject(e);
+                                })
+                            });
+                        });
+                    return p;
                 },
 
                 refresh: function () {
-                    if (this.isNew) {
-                        this.data = JSON.parse(JSON.stringify(this.defaultData));
-                    } else {
-                        this.async(function() {
-                            var ret = this.storage.get(parseInt(this.pk || this.data.id, 10));
-                            var self = this;
-                            ret.then(function (data) {
-                                self.data = data;
+                    var self = this,
+                            p = new Promise(function (resolve, reject) {
+                                self._getStorage().then(function (storage) {
+                                    if (self.isNew) {
+                                        self.data = JSON.parse(JSON.stringify(self.defaultData));
+
+                                    } else {
+                                        self.async(function () {
+                                            var ret = storage.get(parseInt(self.pk || self.data.id, 10));
+
+                                            ret.then(function (data) {
+                                                self.data = data;
+                                            }, function (e) {
+                                                reject(e);
+                                            });
+
+                                            return ret;
+                                        });
+
+                                    }
+                                    resolve(self);
+                                }, function (e) {
+                                    reject(e);
+                                });
+
+                            }, function (e) {
+                                reject(e);
                             });
 
-                            return ret;
-                        });
-                    }
+                    return p;
 
                 }
 

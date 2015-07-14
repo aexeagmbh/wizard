@@ -1,1 +1,1 @@
-:host{display:block}:host #sentence-container{font-size:30px;line-height:45px;font-weight:400;position:relative}:host #sentence-container #raw-sentence{position:relative}:host #sentence-container.preview #new-synonym,:host #sentence-container.preview #raw-sentence{display:none}
+:host{display:block}:host #sentence-container{font-size:30px;line-height:45px;font-weight:normal;position:relative}:host #sentence-container #raw-sentence{position:relative}:host #sentence-container.preview #raw-sentence,:host #sentence-container.preview #new-synonym{display:none}

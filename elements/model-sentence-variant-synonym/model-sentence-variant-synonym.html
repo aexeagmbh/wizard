@@ -1,0 +1,50 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../base-model/base-model.html">
+
+<polymer-element name="model-sentence-variant-synonym" extends="base-model" attributes="pk storageId sentenceVariantId numberMatches"
+                 constructor="SentenceVariantSynonym">
+    <script>
+        (function () {
+
+            function _getSynonymColor(idx) {
+                var synonymColors = [
+                    '#ff0000',
+                    '#00ff00',
+                    '#0000ff',
+                    '#ffff00',
+                    '#ff00ff',
+                    '#00ffff'
+                ];
+                return synonymColors[(idx % synonymColors.length)];
+            }
+
+            Polymer('model-sentence-variant-synonym', {
+                defaultData: {
+                    id: null,
+                    created: null,
+                    modified: null,
+                    text: ''
+                },
+
+                dataChanged: function (oldVal, newVal) {
+                    this.highlightColorIdx = parseInt(newVal.id, 10);
+                    this.synonymColor = _getSynonymColor(this.highlightColorIdx);
+                    this.textValue = newVal.text;
+                },
+
+                sentenceVariantIdChanged: function (oldVal, newVal) {
+                    console.log('model sentenceVariantIdChanged');
+                    this.defaultData.sentence_variant = newVal;
+                    this.highlightColorIdx = parseInt(newVal.id, 10);
+                    this.synonymColor = _getSynonymColor(this.highlightColorIdx);
+                    this.textValue = newVal.text;
+                    this.refresh();
+                },
+
+                setTextValue: function (newVal) {
+                    this.data.text = newVal;
+                }
+            });
+        })();
+    </script>
+</polymer-element>

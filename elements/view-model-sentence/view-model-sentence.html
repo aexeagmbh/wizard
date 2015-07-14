@@ -1,0 +1,84 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
+
+<polymer-element name="view-model-sentence" attributes="storageId">
+    <template>
+        <more-route id="currentRoute" context name="sentence" params="{{params}}"></more-route>
+
+        <!--<model-sentence id="model-sentence" storageId="{{storageId}}" pk="{{params.sentencePk}}"></model-sentence>-->
+
+        <div class="sentence">
+            <div horizontal layout center justified>
+                <paper-button class="btn-back" on-tap="{{goToList}}">
+                    <core-icon icon="arrow-back"></core-icon>
+                    Show list
+                </paper-button>
+                <h2>Sentence: {{modelSentence.data.name}}</h2>
+                <paper-button class="btn-forward" on-tap="{{goToSentenceVariants}}">
+                    <core-icon icon="arrow-forward"></core-icon>
+                    Show sentence variants
+                </paper-button>
+            </div>
+            <div horizontal layout center>
+                <paper-input-decorator label="Name" floatingLabel="{{true}}">
+                    <input value="{{modelSentence.data.name}}" is="ax-core-input-inline"
+                           on-ax-core-input-inline-cancel="{{cancelEditAction}}"
+                           on-ax-core-input-inline-commit="{{updateAPI}}">
+                </paper-input-decorator>
+                <paper-icon-button icon="delete" on-click="{{confirmDeleteAction}}"></paper-icon-button>
+                <paper-action-dialog id="confirmDialog" heading="Delete sentence?">
+                    <p>Do you really want to delete the sentence "{{modelSentence.data.name}}"?</p>
+                    <paper-button dismissive>Cancel</paper-button>
+                    <paper-button affirmative on-click="{{deleteAction}}">Confirm</paper-button>
+                </paper-action-dialog>
+            </div>
+        </div>
+    </template>
+    <script>
+        (function () {
+            Polymer('view-model-sentence', {
+
+                computed: {
+                    sentenceId: 'params.sentencePk'
+                },
+
+                sentenceIdChanged: function (oldVal, newVal) {
+                    var self = this;
+                    if (this.$.currentRoute.route.active) {
+                        this.asyncMethod(function () {
+                            document.querySelector('#storageContainer').getStorage(self.storageId.replace('storage', '')).then(function (storage) {
+    //                            self.$['newModel'].refresh();
+                                storage.fetchObject(newVal).then(function (modelSentence) {
+                                    self.modelSentence = modelSentence;
+                                }).catch(function (e) {
+
+                                });
+                            });
+
+                        });
+                    }
+                },
+
+                updateAPI: function () {
+                    this.modelSentence.save();
+                },
+
+                confirmDeleteAction: function () {
+                    this.$.confirmDialog.open();
+                },
+                deleteAction: function () {
+                    this.modelSentence.delete();
+                },
+                goToList: function () {
+                    MoreRouting.navigateTo('sentences', {trainingPk: this.params.trainingPk});
+                },
+                goToSentenceVariants: function () {
+                    MoreRouting.navigateTo('variants', {trainingPk: this.params.trainingPk, sentencePk: this.params.sentencePk});
+                }
+            });
+        })();
+    </script>
+</polymer-element>

@@ -1,0 +1,79 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<polymer-element name="view-model-sentence-variant-list" extends="base-model-list-view" attributes="storageId">
+    <template>
+
+        <more-route id="currentRoute" context name="variants" params="{{params}}"></more-route>
+        <div class="page" cross-fade>
+            <div horizontal layout end justified>
+                <paper-button class="btn-back" on-tap="{{goToSentence}}">
+                    <core-icon icon="arrow-back"></core-icon>
+                    Show sentence
+                </paper-button>
+                <h2>Variants for {{sentenceModel.data.name}}</h2>
+            </div>
+
+
+            <hr>
+
+            <div class="variants">
+                <template repeat="{{variant in data}}">
+                    <div horizontal layout center justified>
+                        <h3>{{variant.text}}</h3>
+                        <paper-icon-button class="btn-list-show-detail" icon="chevron-right"
+                                           pk="{{variant.id}}"
+                                           sentence="{{variant.sentence}}"
+                                           on-tap="{{goToVariant}}"></paper-icon-button>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </template>
+    <script>
+        (function () {
+            Polymer('view-model-sentence-variant-list', {
+                computed: {
+                    sentencePk: 'params.sentencePk'
+                },
+
+
+                goToSentence: function () {
+                    MoreRouting.navigateTo('sentence', {trainingPk: this.params.trainingPk, sentencePk: this.params.sentencePk});
+                },
+                goToVariant: function (e, details, sender) {
+                    MoreRouting.navigateTo('variant', {trainingPk: this.params.trainingPk, sentencePk: this.params.sentencePk, variantPk: sender.getAttribute('pk')});
+                },
+                sentencePkChanged: function (oldVal, newVal) {
+                    var self = this;
+                    if (self.$.currentRoute.route.active) {
+                        self.refresh();
+                        self._getStorage('Sentence').then(function (sentenceStorage) {
+                            sentenceStorage.fetchObject(self.params.sentencePk).then(function (sentenceModel) {
+                                self.sentenceModel = sentenceModel;
+                            }, function (e) {
+//                                console.log({e: e, sentence: self.params.sentencePk});
+                            });
+                        });
+                    }
+                },
+
+                refresh: function() {
+                    var self = this;
+                    if (this.$.currentRoute.route.active) {
+                        this.asyncMethod(function () {
+                            self._getStorage(self.storageId.replace('storage', '')).then(function (storage) {
+                                storage.list().then(function (response) {
+                                    self.data = response;
+                                }).catch(function (e) {
+
+                                });
+                            });
+
+                        });
+                    }
+                }
+
+            });
+        })();
+    </script>
+</polymer-element>

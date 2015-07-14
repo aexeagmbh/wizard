@@ -1,0 +1,78 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/core-icon/core-icon.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
+
+<polymer-element name="view-model-training-list" extends="base-model-list-view" attributes="storageId">
+    <template>
+        <link rel="stylesheet" href="../../styles/main.css">
+
+        <model-training id="newModel" storageId="{{storageId}}"></model-training>
+
+        <more-route context name="trainings"></more-route>
+
+
+        <div class="page" cross-fade>
+            <div horizontal layout start-justified>
+                <h1>Training list</h1>
+            </div>
+            <div horizontal layout end-justified>
+                <paper-button on-click="{{addDialogAction}}">
+                    <core-icon icon="add"></core-icon>
+                    Add training
+                </paper-button>
+            </div>
+            <core-collapse id="addDialogCollapse">
+                <form on-submit="{{addAction}}">
+                    <paper-input-decorator floatingLabel label="Name">
+                        <input is="ax-core-input-inline"
+                               on-ax-core-input-inline-cancel="{{cancelAddAction}}"
+                               value="{{newModel.data.name}}" id="addNameInput">
+                    </paper-input-decorator>
+                </form>
+                <div horizontal layout center justified>
+                    <paper-button on-click="{{cancelAddAction}}">
+                        <core-icon icon="cancel"></core-icon>
+                        Cancel
+                    </paper-button>
+                    <paper-button on-click="{{addAction}}">
+                        <core-icon icon="add"></core-icon>
+                        Add
+                    </paper-button>
+                </div>
+                <hr>
+            </core-collapse>
+
+            <div class="trainings">
+                <template repeat="{{training in data}}">
+                    <hr>
+                    <div horizontal layout center justified>
+                        <h3>{{training.name}}</h3>
+                        <paper-icon-button class="btn-list-show-detail" icon="chevron-right"
+                                           pk="{{training.id}}"
+                                           on-tap="{{goToTraining}}"></paper-icon-button>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+
+    </template>
+    <script>
+        (function () {
+            Polymer('view-model-training-list', {
+                goToTraining: function (e, details, sender) {
+                    MoreRouting.navigateTo('training', {trainingPk: sender.getAttribute('pk')});
+                },
+                domReady: function () {
+                    this.refresh();
+                }
+
+
+
+
+            });
+        })();
+    </script>
+</polymer-element>

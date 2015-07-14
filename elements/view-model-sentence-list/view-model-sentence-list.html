@@ -1,0 +1,90 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/core-icon/core-icon.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
+
+<polymer-element name="view-model-sentence-list" extends="base-model-list-view" attributes="storageId">
+    <template>
+        <link rel="stylesheet" href="../../styles/main.css">
+
+
+        <more-route id="currentRoute" context name="sentences" params="{{params}}"></more-route>
+
+
+        <div class="page" cross-fade>
+            <div horizontal layout end justified>
+                <paper-button class="btn-back" on-tap="{{goToTraining}}"><core-icon icon="arrow-back"></core-icon> Show training</paper-button>
+                <h2>Sentences for {{trainingModel.data.name}}</h2>
+            </div>
+
+            <div horizontal layout end-justified>
+                <paper-button on-click="{{addDialogAction}}"><core-icon icon="add"></core-icon> Add sentence</paper-button>
+            </div>
+
+            <core-collapse id="addDialogCollapse">
+                <form on-submit="{{addAction}}">
+                    <paper-input-decorator floatingLabel label="Name">
+                        <input is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelAddAction}}" value="{{$.newModel.data.name}}" id="addNameInput">
+                    </paper-input-decorator>
+                </form>
+                <div horizontal layout center justified>
+                    <paper-button on-click="{{cancelAddAction}}"><core-icon icon="cancel"></core-icon> Cancel</paper-button>
+                    <paper-button on-click="{{addAction}}"><core-icon icon="add"></core-icon> Add</paper-button>
+                </div>
+            </core-collapse>
+
+            <hr>
+
+            <div class="sentences">
+                <template repeat="{{sentence in data}}">
+                    <div horizontal layout center justified>
+                        <h3>{{sentence.name}}</h3>
+                        <paper-icon-button class="btn-list-show-detail" icon="chevron-right"
+                                           pk="{{sentence.id}}"
+                                           training="{{sentence.training}}"
+                                           on-tap="{{goToSentence}}"></paper-icon-button>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </template>
+    <script>
+        (function () {
+            Polymer('view-model-sentence-list', {
+
+                computed: {
+                    trainingPk: 'params.trainingPk'
+                },
+
+                goToSentence: function (e, details, sender) {
+                    MoreRouting.navigateTo('sentence', {trainingPk: sender.getAttribute('training'), sentencePk: sender.getAttribute('pk')});
+                },
+
+                trainingPkChanged: function(oldVal, newVal) {
+                    var self = this;
+                    if (this.$.currentRoute.route.active) {
+                        this._getStorage('Training').then(function (storage) {
+                            storage.fetchObject(newVal).then(function (trainingModel) {
+                                self.trainingModel = trainingModel;
+                            });
+                        });
+
+                        this.refresh();
+//                        this.$.newModel.refresh().then(function (model) {
+//                            console.log(model.data);
+//                            model.data.training = newVal;
+//                        });
+////                        this.$.newModel
+//                        console.log({trainingPkChanged: [this.$.newModel, this.$.newModel.data]});
+                    }
+                },
+
+                goToTraining: function(e, details, sender) {
+                    MoreRouting.navigateTo('training', {trainingPk: this.params.trainingPk});
+                }
+
+            });
+        })();
+    </script>
+</polymer-element>

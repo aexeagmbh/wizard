@@ -4,27 +4,60 @@
 <link rel="import" href="../../bower_components/core-icon/core-icon.html">
 <link rel="import" href="../../bower_components/paper-dialog/paper-action-dialog.html">
 
-<polymer-element name="base-model-list-view" attributes="storageId">
+<polymer-element name="base-model-list-view" attributes="storageId storage">
     <template>
-        <base-model id="newModel" storageId="{{storageId}}"></base-model>
+        <!--<base-model id="newModel" storage="{{storage}}"></base-model>-->
     </template>
     <script>
         (function () {
             Polymer('base-model-list-view', {
+
                 data: [],
-                storage: null,
-                storageIdChanged: function (oldValue, newValue) {
-                    this.storage = document.querySelector('#' + newValue);
+
+
+                 _getStorage: function (storageId) {
+                    var self = this;
+                    var p = new Promise(function (resolve, reject) {
+                        var storageContainer = document.querySelector('#storageContainer');
+
+                        storageContainer.getStorage(storageId).then(function (storage) {
+                            if (storage) {
+                                resolve(storage);
+                            } else {
+                                reject();
+                            }
+
+                        }, function (e) {
+                            reject();
+                        });
+
+                    });
+
+                    return p;
                 },
 
-                computed: {
-                    'newModel': '$.newModel'
-                },
+//
+//                domReady: function () {
+//                    var self = this;
+////                    console.log({domReady: this});
+//                    this._getStorage(self.storageId.replace('storage','')).then(function (storage) {
+//                        self.storage = storage;
+//                    });
+//                },
+
+//                storageIdChanged: function (oldValue, newValue) {
+////                    if (!this.storage || this.storage.id !== newValue) {
+////                        this.storage = document.querySelector('#' + newValue);
+////                    }
+//                    if (newValue) {
+//                        this.refresh();
+//                    }
+//                },
 
                 addAction: function(e, details, sender) {
                     e.preventDefault();
                     var self = this;
-                    this.newModel.save().then(function() {
+                    this.$.newModel.save().then(function() {
                         self.$.addDialogCollapse.opened = false;
                     }).catch(function (e) {
                         self.$.addDialogCollapse.opened = true;
@@ -35,24 +68,31 @@
                     setTimeout(function(){this.$.addNameInput.focus();}.bind(this), 400);
                 },
                 cancelAddAction: function(){
-                    this.newModel.refresh();
+                    this.$.newModel.refresh();
                     this.$.addDialogCollapse.opened = false;
                 },
-
-                ready: function () {
-                    this.refresh();
-                },
-
                 refresh: function() {
-                    var self = this;
+                    var self = this,
+                        p;
+console.log('refresh');
 
                     this.asyncMethod(function() {
-                        self.storage.list().then(function (response) {
-                            self.data = response;
-                        }).catch(function (e) {
+                    p = new Promise(function (resolve, reject) {
+                        self._getStorage(self.storageId.replace('storage','')).then(function (storage) {
+//                            self.$['newModel'].refresh();
+                            storage.list().then(function (response) {
+                                self.data = response;
+                                console.log({objectList: self.objectList});
+                            }).catch(function (e) {
 
+                            });
                         });
+
+                        resolve(self);
                     });
+
+                    });
+                    return p;
                 }
             });
         })();

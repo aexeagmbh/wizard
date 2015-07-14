@@ -9,9 +9,10 @@
 <link rel="import" href="../ax-core-input-inline/ax-core-input-inline.html">
 <link rel="import" href="../ax-bound-paper-item/ax-bound-paper-item.html">
 
-<polymer-element name="sentence-synonym-overlay-inline" attributes="synonym isPreview">
+<polymer-element name="sentence-synonym-overlay-inline" attributes="synonymPk storageId isPreview">
     <template><link rel="stylesheet" href="sentence-synonym-overlay-inline.css"><!--
-        --><div id="sentence-synonym-overlay-inline-container"  on-mouseleave="{{unHoverAction}}"  on-dblclick="{{addNewSynonymAction}}"><!--
+    --><model-sentence-variant-synonym id="modelSynonym" storageId="{{storageId}}" pk="{{synonymPk}}"></model-sentence-variant-synonym><!--
+        --><div id="sentence-synonym-overlay-inline-container"  on-mouseleave="{{unHoverAction}}"  on-xxxdblclick="{{addNewSynonymAction}}"><!--
             --><template if="{{isDisplay}}"><!--
                 --><span class="synonym" on-mouseenter="{{hoverAction}}"
                          style="box-shadow: 1px 1px 1px 1px {{synonym.synonymColor}};"
@@ -22,9 +23,10 @@
                          style="box-shadow: 1px 1px 1px 1px {{synonym.synonymColor}};"
                 >{{displaySynonym}}</span><!--
                 --><div class="controls" style="color: {{synonym.synonymColor}};"><!--
+
+                    --><template if="{{isPreview}}"><!--
                     --><paper-icon-button title="Show Synonyms" icon="unfold-more" on-click="{{showSynonymSelectAction}}">Show Synonyms</paper-icon-button><!--
                     --><paper-icon-button title="Add Synonym" icon="create" on-click="{{addNewSynonymAction}}"></paper-icon-button><!--
-                    --><template if="{{isPreview}}"><!--
                         --><paper-icon-button title="Cancel Preview" icon="visibility-off" on-click="{{cancelPreviewAction}}"></paper-icon-button><!--
                     --></template><!--
                     --><paper-icon-button title="Delete" icon="delete" on-click="{{deleteActiveObjectAction}}"></paper-icon-button><!--
@@ -34,21 +36,24 @@
                     <paper-dropdown-menu label="{{displaySynonym}}" on-core-select="{{synonymSelectedAction}}">
                         <paper-dropdown class="dropdown">
                             <core-menu class="menu">
-                                <ax-bound-paper-item boundObject="{{synonym}}">{{synonym.name}}</ax-bound-paper-item>
-                                <template repeat="{{replacement in synonym.replacements}}">
-                                    <ax-bound-paper-item boundObject="{{replacement}}">{{replacement.name}}</ax-bound-paper-item>
+                                <ax-bound-paper-item boundObject="{{synonym}}">{{synonym.data.text}}</ax-bound-paper-item>
+                                <!--<template repeat="{{replacement in synonym.replacements}}">-->
+                                    <!--<ax-bound-paper-item boundObject="{{replacement}}">{{replacement.text}}</ax-bound-paper-item>-->
+                                <!--</template>-->
+                                <template repeat="{{synonymValue in synonymValuesObjectList}}">
+                                    <ax-bound-paper-item boundObject="{{synonymValue}}">{{synonymValue.data.value}}</ax-bound-paper-item>
                                 </template>
                             </core-menu>
                         </paper-dropdown>
                     </paper-dropdown-menu><!--
             --></template><!--
             --><template if="{{isEditActiveObject}}"><!--
-                --><paper-input-decorator label="EDIT: [[activeObject.name]]" floatingLabel="{{true}}"><!--
-                        --><input value="[[activeObject.name]]" is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelEditActiveObjectAction}}" on-ax-core-input-inline-commit="{{commitEditActiveObjectAction}}" autofocus><!--
+                --><paper-input-decorator label="EDIT: [[activeObject.textValue]]" floatingLabel="{{true}}"><!--
+                        --><input value="[[activeObject.textValue]]" is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelEditActiveObjectAction}}" on-ax-core-input-inline-commit="{{commitEditActiveObjectAction}}" autofocus><!--
                 --></paper-input-decorator><!--
             --></template><!--
             --><template if="{{isAddNewSynonym}}">
-                <paper-input-decorator label="New Synonym for: [[synonym.name]]" floatingLabel="{{true}}"><!--
+                <paper-input-decorator label="New Synonym for: [[synonymData.text]]" floatingLabel="{{true}}"><!--
                     --><input is="ax-core-input-inline" on-ax-core-input-inline-cancel="{{cancelNewSynonymAction}}" on-ax-core-input-inline-commit="{{commitNewSynonymAction}}" autofocus><!--
                 --></paper-input-decorator><!--
             --></template><!--
@@ -66,29 +71,130 @@
                 isEditActiveObject: false,
                 activeObject: null,
 
-                isPreview: false,
+//                isPreview: false,
 
-                ready: function () {
+                domReady: function () {
                     this.activeObject = this.synonym;
                 },
+//
+//                synonymChanged: function () {
+//                  this.activeObject = this.synonym;
+//                },
 
-                computed: {
-                    displaySynonym: 'activeObject ? activeObject.name : synonym.name'
+                _getStorage: function (storageId) {
+                    var self = this;
+                    var p = new Promise(function (resolve, reject) {
+                        var storageContainer = document.querySelector('#storageContainer');
+
+                        storageContainer.getStorage(storageId).then(function (storage) {
+                            if (storage) {
+                                resolve(storage);
+                            } else {
+                                reject();
+                            }
+
+                        }, function (e) {
+                            reject();
+                        });
+
+                    });
+
+                    return p;
                 },
 
+
+                computed: {
+                    synonym: '$.modelSynonym',
+                    synonymData: 'synonym.data',
+                    activeObjectData: 'activeObject.data',
+                    displaySynonym: 'activeObject ? activeObject.textValue : synonym.textValue'
+//                    displaySynonym: 'activeObject ? activeObject.text : synonym.text'
+
+                },
+
+                newSynonymValueAction: function (name) {
+                    var self = this;
+                    return self._getStorage('SentenceVariantSynonymValue').then(function (storage) {
+
+                        var newSynonymValue = new SentenceVariantSynonymValue();
+                        newSynonymValue.storage = storage;
+                        newSynonymValue.synonymId = self.synonymPk;
+                        return newSynonymValue.refresh().then(function (newSynonymValueModel) {
+                            newSynonymValueModel.data.value = name;
+                            return newSynonymValueModel.save();
+                        });
+
+                    });
+                },
+
+                synonymPkChanged: function (oldVal, newVal) {
+                    if (this.isPreview && newVal) {
+                        this.refreshSynonymValues(newVal);
+                    }
+                },
+
+                synonymValuesChanged: function () {
+                    var self = this;
+                    console.log('synonymValuesChanged');
+                    self._getStorage('SentenceVariantSynonymValue').then(function (storage) {
+                        var ret = [];
+                        for (o in storage.objectMap) {
+                            ret.push(storage.objectMap[o]);
+                        }
+                        self.synonymValuesObjectList = ret;
+                    });
+                },
+
+
+                refreshSynonymValues: function(synonomPk) {
+                    var self = this,
+                        p;
+console.log('refreshSynonymValues');
+                    console.log(synonomPk);
+
+                    this.asyncMethod(function() {
+                    p = new Promise(function (resolve, reject) {
+                        self._getStorage('SentenceVariantSynonymValue').then(function (storage) {
+//                            self.$['newModel'].refresh();
+                            console.log(storage.listEndPointUrl);
+                            storage.list().then(function (response) {
+                                self.synonymValues = response;
+                            }).catch(function (e) {
+
+                            });
+                        });
+
+                        resolve(self);
+                    });
+
+                    });
+                    return p;
+                },
+
+
+
                 newReplacement: {
-                    name: ''
+                    data: {
+                        text: ''
+                    }
                 },
 
                 showPreviewAction: function() {
                     console.log('showPreviewAction');
-                    this.isPreview = true;
-                    this.fire('sentence-synonym-preview');
+//                    this.isPreview = true;
+//                    this.fire('sentence-synonym-preview');
+
+                    MoreRouting.navigateTo('synonym', {synonymPk: this.synonym.pk});
+
                 },
 
                 commitEditActiveObjectAction: function (e, foo, input) {
-                    this.activeObject.name = input.value;
-                    this.cancelEditActiveObjectAction();
+                    var self = this;
+                    this.activeObject.setTextValue(input.value);
+
+                    this.activeObject.save().then(function (activeObject) {
+                        self.cancelEditActiveObjectAction();
+                    });
                 },
 
                 cancelEditActiveObjectAction: function () {
@@ -103,26 +209,37 @@
                 },
 
                 cancelPreviewAction: function () {
-                    console.log('cancelPreviewAction');
-                    this.activeObject = this.synonym;
-                    this.isPreview = false;
+                    console.log('cancelPreviewAction: inline');
+//                    this.activeObject = this.synonym;
+//                    this.isPreview = false;
                     this.isDisplay = true;
                     this.isHovered = false;
                     this.isDisplaySynonymSelect = false;
                     this.isAddNewSynonym = false;
-
+//
                     this.fire('sentence-synonym-preview-cancel');
+                    MoreRouting.navigateTo('synonyms');
                 },
 
                 commitNewSynonymAction: function (e, foo, input) {
+                    var self = this;
                     console.log('commitNewSynonymAction');
-                    var item = {};
-                    item.name = input.value;
-                    item.synonymId = this.synonym.id;
-                    this.synonym.replacements.unshift(item);
-                    this.isPreview = true;
-                    this.activeObject = item;
-                    this.cancelAddNewSynonymAction();
+//                    var item = {};
+//                    item.text = input.value;
+//                    item.synonymId = this.synonymData.id;
+//                    this.synonym.replacements.unshift(item);
+                    if (input.value) {
+                        this.newSynonymValueAction(input.value).then(function (newSynonymValue) {
+                            console.log({newSynonymValue: newSynonymValue});
+                            self.activeObject = newSynonymValue;
+                            self.cancelAddNewSynonymAction();
+                        });
+                    } else {
+                        self.cancelAddNewSynonymAction();
+                    }
+//                    this.isPreview = true;
+//                    this.activeObject = item;
+
                 },
 
 
@@ -130,7 +247,7 @@
                     if (this.isEditActiveObject) {
                         return;
                     }
-                    this.showPreviewAction();
+//                    this.showPreviewAction();
                     console.log('addNewSynonymAction');
                     e.stopPropagation();
                     this.isAddNewSynonym = true;
@@ -148,13 +265,16 @@
 
                 synonymSelectedAction: function (e, foo) {
                     this.activeObject = foo.item.boundObject;
-                    if (e.detail.item.textContent === this.synonym.name) {
-                        this.cancelPreviewAction();
-                    } else {
-                        this.showPreviewAction();
+
+                    console.log({synonymSelectedAction: foo})
+
+//                    if (e.detail.item.textContent === this.synonymData.text) {
+//                        this.cancelPreviewAction();
+//                    } else {
+//                        this.showPreviewAction();
                         this.isDisplaySynonymSelect = false;
                         this.isDisplay = true;
-                    }
+//                    }
 
                 },
 
@@ -203,25 +323,34 @@
                     e.stopPropagation();
                     console.log('deleteActiveObjectAction');
 
-
-                    if (this.activeObject.replacements) {
-                        console.log('deleteActiveObjectAction: is homonym');
-                        this.fire('sentence-synonym-delete', this.activeObject);
+                    var self = this;
+                    if (this.activeObject === self.synonym) {
+                        this.activeObject.delete().then(function () {
+                            self.cancelPreviewAction();
+                        });
                     } else {
-                        console.log('deleteActiveObjectAction: is synonym');
-                        var idx = this.synonym.replacements.indexOf(this.activeObject);
-                        this.synonym.replacements.splice(idx, 1);
-                        this.activeObject = this.synonym;
+                        this.activeObject.delete().then(function () {
+                            self.activeObject = self.synonym;
+                        });
                     }
-
                 },
                 editActiveObjectAction: function () {
+                    var self = this;
                     console.log('editActiveObjectAction');
-                    this.unHoverAction();
-                    this.activeObject = this.activeObject || this.synonym;
-                    this.isEditActiveObject = true;
-                    this.isDisplay = false;
-                    this.showPreviewAction();
+                    if (self.isPreview) {
+                        self.unHoverAction();
+                        self.isEditActiveObject = true;
+                        self.isDisplay = false;
+                        console.log('editActiveObjectAction preview');
+//
+                    } else {
+                        self.showPreviewAction();
+                    }
+//                    self.unHoverAction();
+//                    self.activeObject = self.activeObject || self.synonym;
+//                    self.isEditActiveObject = true;
+//                    self.isDisplay = false;
+
                 }
 
 

@@ -1,7 +1,7 @@
 {
 "version": 3,
-"mappings": "AAAA,KAAM;EACJ,OAAO,EAAE,YAAY",
-"sources": ["../../inline-input/inline-input.scss"],
+"mappings": "AAAA,KAAM,CACJ,OAAO,CAAE,YAAY",
+"sources": ["../../../app/elements/inline-input/inline-input.scss"],
 "names": [],
 "file": "inline-input.css"
 }
